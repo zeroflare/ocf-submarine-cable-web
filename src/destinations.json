@@ -1,0 +1,72 @@
+[
+  {
+    "id": "singapore",
+    "name": "新加坡",
+    "lng": 104.1279,
+    "lat": 1.2252,
+    "anchor": "right"
+  },
+  {
+    "id": "hongkong",
+    "name": "香港",
+    "lng": 114.05169,
+    "lat": 23.27652,
+    "anchor": "left"
+  },
+  {
+    "id": "manila",
+    "name": "馬尼拉",
+    "lng": 120.96323,
+    "lat": 16.06006,
+    "anchor": "right"
+  },
+  {
+    "id": "tokyo",
+    "name": "東京",
+    "lng": 139.88731,
+    "lat": 37.40439,
+    "anchor": "right"
+  },
+  {
+    "id": "guam",
+    "name": "關島",
+    "lng": 144.69383,
+    "lat": 16.59613,
+    "anchor": "right"
+  },
+  {
+    "id": "losangeles",
+    "name": "洛杉磯",
+    "lng": 154.25954,
+    "lat": 39.73392,
+    "anchor": "right"
+  },
+  {
+    "id": "kinmen",
+    "name": "金門",
+    "lng": 117.97187,
+    "lat": 29.39692,
+    "anchor": "left"
+  },
+  {
+    "id": "matsu",
+    "name": "馬祖",
+    "lng": 119.63846,
+    "lat": 31.54245,
+    "anchor": "left"
+  },
+  {
+    "id": "sanchong",
+    "name": "三重",
+    "lng": 136.8525,
+    "lat": 40.07992,
+    "anchor": "left"
+  },
+  {
+    "id": "shanghai",
+    "name": "上海",
+    "lng": 121.94813,
+    "lat": 37.53868,
+    "anchor": "left"
+  }
+]

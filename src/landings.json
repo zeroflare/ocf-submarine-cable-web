@@ -1,0 +1,37 @@
+[
+  {
+    "id": "toucheng",
+    "name": "頭城",
+    "lng": 121.80853,
+    "lat": 24.86603,
+    "anchor": "left"
+  },
+  {
+    "id": "bali",
+    "name": "八里",
+    "lng": 121.39026,
+    "lat": 25.19761,
+    "anchor": "left"
+  },
+  {
+    "id": "tamsui",
+    "name": "淡水",
+    "lng": 121.46351,
+    "lat": 25.34665,
+    "anchor": "right"
+  },
+  {
+    "id": "fangshan",
+    "name": "枋山",
+    "lng": 120.63335,
+    "lat": 22.49595,
+    "anchor": "left"
+  },
+  {
+    "id": "dawu",
+    "name": "大武",
+    "lng": 120.92635,
+    "lat": 22.6932,
+    "anchor": "right"
+  }
+]
