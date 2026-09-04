@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+  <script>(function(){try{var s=localStorage.getItem('theme');var d=s?s==='dark':matchMedia('(prefers-color-scheme:dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='light';}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>台灣數位生命線：海底電纜</title>
-  <meta name="description" content="25 條通訊海纜，是臺灣對內對外的重要通訊管道，乘載了 99% 的網路流量" />
+  <title>臺灣數位生命線：海底電纜</title>
+  <meta name="description" content="26 條通訊海纜，是臺灣對內對外的重要通訊管道，乘載了 99% 的網路流量" />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,15 +15,15 @@
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要內容</a>
-  <header class="site-nav" id="site-nav"> <a class="site-nav-brand" href="./">海纜韌性觀測站</a> <button class="site-nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav-menu"> <span class="visually-hidden">開啟選單</span> <span class="site-nav-burger" aria-hidden="true"></span> </button> <nav id="site-nav-menu" class="site-nav-links" aria-label="主要"> <a href="#intro" class="is-active" data-nav="intro" aria-current="page"> 海底電纜是什麼  </a><a href="#articles" data-nav="articles"> 數位韌性準備  </a><a href="#portals" data-nav="portals"> 更多海纜知識入口  </a> </nav> </header>
-  <nav class="nav-dots" aria-label="章節導覽"> <button type="button" data-target="intro" aria-label="開場"> <span class="nav-dot"></span> <span class="nav-label">開場</span> </button><button type="button" data-target="journey" aria-label="旅程"> <span class="nav-dot"></span> <span class="nav-label">旅程</span> </button><button type="button" data-target="sea" aria-label="海中"> <span class="nav-dot"></span> <span class="nav-label">海中</span> </button><button type="button" data-target="landing" aria-label="登陸站"> <span class="nav-dot"></span> <span class="nav-label">登陸站</span> </button><button type="button" data-target="taiwan" aria-label="全球"> <span class="nav-dot"></span> <span class="nav-label">全球</span> </button> </nav>
+  <header class="site-nav" id="site-nav"> <a class="site-nav-brand" href="./">海纜韌性觀測站</a> <button class="theme-toggle" type="button" aria-label="切換成深色模式" aria-pressed="false"><svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.53 1.72a.75.75 0 0 1 .16.82A8.97 8.97 0 0 0 9 6a9 9 0 0 0 9 9 8.97 8.97 0 0 0 3.46-.69.75.75 0 0 1 .98.98A10.5 10.5 0 0 1 12.75 22C6.95 22 2.25 17.3 2.25 11.5c0-4.37 2.67-8.11 6.46-9.69a.75.75 0 0 1 .82.16Z"/></svg><svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Zm0-5.25a1 1 0 0 1 1 1V5.5a1 1 0 1 1-2 0V3.25a1 1 0 0 1 1-1Zm0 15.5a1 1 0 0 1 1 1v2.25a1 1 0 1 1-2 0V18.75a1 1 0 0 1 1-1ZM3.25 12a1 1 0 0 1 1-1H6.5a1 1 0 1 1 0 2H4.25a1 1 0 0 1-1-1Zm15.5 0a1 1 0 0 1 1-1h2.25a1 1 0 1 1 0 2H19.75a1 1 0 0 1-1-1ZM5.64 5.64a1 1 0 0 1 1.41 0l1.6 1.6a1 1 0 0 1-1.42 1.41l-1.59-1.59a1 1 0 0 1 0-1.42Zm9.9 9.9a1 1 0 0 1 1.42 0l1.59 1.6a1 1 0 0 1-1.41 1.41l-1.6-1.59a1 1 0 0 1 0-1.42ZM18.36 5.64a1 1 0 0 1 0 1.41l-1.6 1.6a1 1 0 1 1-1.41-1.42l1.59-1.59a1 1 0 0 1 1.42 0ZM8.46 15.54a1 1 0 0 1 0 1.42l-1.6 1.59a1 1 0 0 1-1.41-1.41l1.59-1.6a1 1 0 0 1 1.42 0Z"/></svg></button> <button class="site-nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav-menu"> <span class="visually-hidden">開啟選單</span> <span class="site-nav-burger" aria-hidden="true"></span> </button> <nav id="site-nav-menu" class="site-nav-links" aria-label="主要"> <a href="#intro" class="is-active" data-nav="intro" aria-current="page"> 海底電纜是什麼  </a><a href="#articles" data-nav="articles"> 數位韌性準備  </a><a href="#portals" data-nav="portals"> 更多海纜知識入口  </a> </nav> </header>
+  <nav class="nav-dots" aria-label="章節導覽"> <button type="button" data-target="intro" aria-label="開場"> <span class="nav-dot"></span> <span class="nav-label">開場</span> </button><button type="button" data-target="journey" aria-label="旅程"> <span class="nav-dot"></span> <span class="nav-label">旅程</span> </button><button type="button" data-target="sea" aria-label="海中"> <span class="nav-dot"></span> <span class="nav-label">海中</span> </button><button type="button" data-target="landing" aria-label="登陸站"> <span class="nav-dot"></span> <span class="nav-label">登陸站</span> </button><button type="button" data-target="taiwan" aria-label="全球"> <span class="nav-dot"></span> <span class="nav-label">全球</span> </button><!--article-dots--></nav>
   <p class="scene-index" aria-hidden="true"> <span data-scene-index>01</span> <span data-scene-name>開場</span> </p>
   <main id="main">
-    <section id="cover" class="cover"> <div id="cover-map" class="cover-map"></div> <div class="cover-map-veil" aria-hidden="true"></div> <div class="cover-inner"> <h1 class="cover-title">台灣數位生命線：海底電纜</h1> <hr class="cover-rule"> <p class="cover-lead"> 25 條通訊海纜，<br> 是臺灣對內對外的重要通訊管道，<br> 乘載了 99% 的網路流量 </p> </div> <p class="cover-map-attrib"> <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">© OpenStreetMap</a>
+    <section id="cover" class="cover"> <div id="cover-map" class="cover-map"></div> <div class="cover-map-veil" aria-hidden="true"></div> <div class="cover-inner"> <h1 class="cover-title">臺灣數位生命線：海底電纜</h1> <hr class="cover-rule"> <p class="cover-lead"> 26 條通訊海纜，<br> 是臺灣對內對外的重要通訊管道，<br> 乘載了 99% 的網路流量 </p> <p class="cover-dek">當海纜從看不見的網路基礎設施，變成國防安全與社會焦慮的一部分，數篇報導，我們從馬祖斷纜與臺灣面臨的灰色地帶風險出發，拆解手機服務可能出現的斷點，也走進五個人的離線準備：當熟悉的連線不再可靠，我們能否繼續取得資訊、維持生活，並找到彼此？</p> </div> <p class="cover-map-attrib"> <a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer" target="_blank">© OpenStreetMap</a>
 ·
 <a href="https://carto.com/attributions" rel="noopener noreferrer" target="_blank">CARTO</a> </p> <a class="cover-scroll" href="#intro">
 SCROLL
-<span class="cover-scroll-line" aria-hidden="true"></span> </a> </section>  <section class="scene" id="intro" data-scene="intro" style="--scene-vh: 100"> <div class="scene-sticky">  <div class="intro-stage"> <svg class="intro-svg" viewBox="0 0 1440 860" preserveAspectRatio="xMidYMid slice" aria-hidden="true"> <defs> <linearGradient id="in-bg" x1="0" y1="0" x2="0" y2="1"> <stop offset="0%" stop-color="#f7fbfe"></stop> <stop offset="72%" stop-color="#eaf9ff"></stop> <stop offset="72%" stop-color="#dceef8"></stop> <stop offset="100%" stop-color="#d7e8f4"></stop> </linearGradient> </defs> <rect width="1440" height="860" fill="url(#in-bg)"></rect> <g id="iphone"> <rect x="610" y="108" width="300" height="652" rx="48" fill="#ffffff" stroke="#d5e2ec" stroke-width="2.5"></rect> <rect x="622" y="120" width="276" height="628" rx="38" fill="#f4fbff"></rect> <rect x="724" y="132" width="72" height="22" rx="11" fill="#082840"></rect> <g fill="#7a93a8" stroke="none"> <g transform="translate(826 143)"> <rect x="0" y="2.5" width="2.2" height="2.5" rx="0.55"></rect> <rect x="3.4" y="0" width="2.2" height="5" rx="0.55"></rect> <rect x="6.8" y="-2.5" width="2.2" height="7.5" rx="0.55"></rect> <rect x="10.2" y="-5" width="2.2" height="10" rx="0.55"></rect> </g> <g transform="translate(844 143)" fill="none" stroke="#7a93a8" stroke-width="1.4"> <rect x="0" y="-5" width="20" height="10" rx="2.2"></rect> <rect x="2.1" y="-2.8" width="12.6" height="5.6" rx="1" fill="#7a93a8" stroke="none"></rect> <rect x="20.6" y="-2.1" width="2" height="4.2" rx="0.7" fill="#7a93a8" stroke="none"></rect> </g> </g> <text x="760" y="368" text-anchor="middle" fill="#082840" font-size="22" font-weight="700">台灣數位生命線：海底電纜</text> <line x1="700" y1="386" x2="820" y2="386" stroke="#00aee8" stroke-width="2"></line> <text x="760" y="418" text-anchor="middle" fill="#4a6680" font-size="13">25 條通訊海纜，</text> <text x="760" y="438" text-anchor="middle" fill="#4a6680" font-size="13">是臺灣對內對外的重要通訊管道，</text> <text x="760" y="458" text-anchor="middle" fill="#4a6680" font-size="13">乘載了 99% 的網路流量</text> <circle cx="760" cy="690" r="10" fill="none" stroke="#b7ddf4" stroke-width="6"></circle> <circle cx="760" cy="690" r="4" fill="#00aee8"></circle> </g>
+<span class="cover-scroll-line" aria-hidden="true"></span> </a> </section>  <section class="scene" id="intro" data-scene="intro" style="--scene-vh: 100"> <div class="scene-sticky">  <div class="intro-stage"> <svg class="intro-svg" viewBox="0 0 1440 860" preserveAspectRatio="xMidYMid slice" aria-hidden="true"> <defs> <linearGradient id="in-bg" x1="0" y1="0" x2="0" y2="1"> <stop offset="0%" stop-color="#f4fbfe"></stop> <stop offset="72%" stop-color="#eaf9ff"></stop> <stop offset="72%" stop-color="#d7e8f4"></stop> <stop offset="100%" stop-color="#dceef8"></stop> </linearGradient> </defs> <rect width="1440" height="860" fill="url(#in-bg)"></rect> <g id="iphone"> <rect x="610" y="108" width="300" height="652" rx="48" fill="#ffffff" stroke="#d5e2ec" stroke-width="2.5"></rect> <rect x="622" y="120" width="276" height="628" rx="38" fill="#f4fbfe"></rect> <rect x="724" y="132" width="72" height="22" rx="11" fill="#082840"></rect> <g fill="#7a93a8" stroke="none"> <g transform="translate(826 143)"> <rect x="0" y="2.5" width="2.2" height="2.5" rx="0.55"></rect> <rect x="3.4" y="0" width="2.2" height="5" rx="0.55"></rect> <rect x="6.8" y="-2.5" width="2.2" height="7.5" rx="0.55"></rect> <rect x="10.2" y="-5" width="2.2" height="10" rx="0.55"></rect> </g> <g transform="translate(844 143)" fill="none" stroke="#7a93a8" stroke-width="1.4"> <rect x="0" y="-5" width="20" height="10" rx="2.2"></rect> <rect x="2.1" y="-2.8" width="12.6" height="5.6" rx="1" fill="#7a93a8" stroke="none"></rect> <rect x="20.6" y="-2.1" width="2" height="4.2" rx="0.7" fill="#7a93a8" stroke="none"></rect> </g> </g> <text x="760" y="368" text-anchor="middle" fill="#082840" font-size="22" font-weight="700">臺灣數位生命線：海底電纜</text> <line x1="700" y1="386" x2="820" y2="386" stroke="#00aee8" stroke-width="2"></line> <text x="760" y="418" text-anchor="middle" fill="#4a6680" font-size="13">26 條通訊海纜，</text> <text x="760" y="438" text-anchor="middle" fill="#4a6680" font-size="13">是臺灣對內對外的重要通訊管道，</text> <text x="760" y="458" text-anchor="middle" fill="#4a6680" font-size="13">乘載了 99% 的網路流量</text> <circle cx="760" cy="690" r="10" fill="none" stroke="#d7e8f4" stroke-width="6"></circle> <circle cx="760" cy="690" r="4" fill="#00aee8"></circle> </g>
 <g id="basestation">
   <g transform="translate(1140 434) scale(0.72) translate(-1080 -434)">
     <g fill="none" stroke="#082840" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
@@ -56,12 +57,14 @@ SCROLL
     <div class="journey-stage">
       <svg class="journey-svg" viewBox="-240 0 1920 860" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
-          <pattern id="jn-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-            <path d="M32 0 H0 V32" fill="none" stroke="#c5d8e6" stroke-width="0.8"></path>
-          </pattern>
-          <pattern id="jn-hatch" width="9" height="9" patternTransform="rotate(42)" patternUnits="userSpaceOnUse">
-            <line x1="0" y1="0" x2="0" y2="9" stroke="#9bb4c6" stroke-width="1.15"></line>
-          </pattern>
+          <linearGradient id="jn-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f4fbfe"></stop>
+            <stop offset="100%" stop-color="#eaf9ff"></stop>
+          </linearGradient>
+          <linearGradient id="jn-sea" gradientUnits="userSpaceOnUse" x1="0" y1="430" x2="0" y2="720">
+            <stop offset="0%" stop-color="#d5ebf5"></stop>
+            <stop offset="100%" stop-color="#78b4e6"></stop>
+          </linearGradient>
           <filter id="jn-glow" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="2.4" result="b"></feGaussianBlur>
             <feMerge>
@@ -70,13 +73,10 @@ SCROLL
             </feMerge>
           </filter>
         </defs>
-        <rect x="-240" y="-80" width="1920" height="1020" fill="#f4fafd"></rect>
-        <rect x="-240" y="-80" width="1920" height="1020" fill="url(#jn-grid)" opacity="0.7"></rect>
+        <rect x="-240" y="-80" width="1920" height="1020" fill="url(#jn-sky)"></rect>
         <g transform="translate(0 120)">
-        <path d="M-240,310 L730,310 C800,345 850,545 930,560 C1010,560 1065,345 1132,310 L1680,310 L1680,860 L-240,860 Z" fill="#e7f1f4"></path>
-        <path d="M-240,310 L730,310 C800,345 850,545 930,560 C1010,560 1065,345 1132,310 L1680,310 L1680,860 L-240,860 Z" fill="url(#jn-hatch)" opacity="0.55"></path>
-        <path d="M775,355 C820,450 870,545 930,560 C990,545 1045,450 1089,355 Z" fill="#d5ebf5" opacity="0.55"></path>
-        <path d="M-240,310 L730,310 C800,345 850,545 930,560 C1010,560 1065,345 1132,310 L1680,310" fill="none" stroke="#082840" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"></path>
+        <path d="M-240,310 L730,310 C800,345 850,545 930,560 C1010,560 1065,345 1132,310 L1680,310 L1680,860 L-240,860 Z" fill="url(#jn-sea)"></path>
+        <path d="M-240,310 L730,310 C800,345 850,545 930,560 C1010,560 1065,345 1132,310 L1680,310" fill="none" stroke="#082840" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"></path>
         <line x1="775" y1="355" x2="1089" y2="355" stroke="#5aa3c4" stroke-width="2"></line>
 
         <path d="M730,294 C800,329 850,529 930,544 C1010,544 1065,329 1132,294" fill="none" stroke="#f0c14d" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" filter="url(#jn-glow)"></path>
@@ -106,23 +106,23 @@ SCROLL
           <text x="560" y="338" text-anchor="middle" fill="#4a6680" font-size="13" font-weight="600">基地台</text>
 
           <g transform="translate(690 310)" fill="none" stroke="#082840" stroke-width="2.4">
-            <rect x="-42" y="-78" width="84" height="78" fill="#f7fbfe"></rect>
-            <rect x="-26" y="-38" width="16" height="26" fill="#f7fbfe"></rect>
-            <rect x="10" y="-38" width="16" height="26" fill="#f7fbfe"></rect>
+            <rect x="-42" y="-78" width="84" height="78" fill="#ffffff"></rect>
+            <rect x="-26" y="-38" width="16" height="26" fill="#d7eef8"></rect>
+            <rect x="10" y="-38" width="16" height="26" fill="#d7eef8"></rect>
           </g>
           <text x="690" y="338" text-anchor="middle" fill="#4a6680" font-size="13" font-weight="600">海纜登陸站</text>
 
           <text x="930" y="480" text-anchor="middle" fill="#082840" font-size="22" font-weight="700">海纜</text>
 
           <g transform="translate(1172 310)" fill="none" stroke="#082840" stroke-width="2.4">
-            <rect x="-42" y="-78" width="84" height="78" fill="#f7fbfe"></rect>
-            <rect x="-26" y="-38" width="16" height="26" fill="#f7fbfe"></rect>
-            <rect x="10" y="-38" width="16" height="26" fill="#f7fbfe"></rect>
+            <rect x="-42" y="-78" width="84" height="78" fill="#ffffff"></rect>
+            <rect x="-26" y="-38" width="16" height="26" fill="#d7eef8"></rect>
+            <rect x="10" y="-38" width="16" height="26" fill="#d7eef8"></rect>
           </g>
           <text x="1172" y="338" text-anchor="middle" fill="#4a6680" font-size="13" font-weight="600">海纜登陸站</text>
 
           <g transform="translate(1320 310)" fill="none" stroke="#082840" stroke-width="2.2">
-            <rect x="-40" y="-176" width="80" height="176" fill="#f7fbfe"></rect>
+            <rect x="-40" y="-176" width="80" height="176" fill="#ffffff"></rect>
             <rect x="-28" y="-192" width="56" height="16" fill="#f7fbfe"></rect>
             <g fill="#d7eef8" stroke="#082840" stroke-width="1.3">
               <rect x="-28" y="-164" width="12" height="16"></rect>
@@ -152,11 +152,10 @@ SCROLL
       </svg>
       <aside class="panel">
         <p class="panel-kicker">訊號旅程</p>
-        <h2>接下來，訊號<br>會潛入海裡</h2>
+        <h2>訊號潛入海裡<br>往異國前進</h2>
         <div class="panel-rule"></div>
-        <p>電訊號被轉成雷射光，鑽進比頭髮還細的<strong>玻璃光纖</strong>。</p>
-        <p>沿著光纖跨越整片海洋，連到地球另一端的伺服器。</p>
-        <p>這些跟花園水管差不多粗的電纜，承載全球超過 <strong>99%</strong> 的網路流量。</p>
+        <p>電訊號被轉成雷射光，鑽進比頭髮還細的<strong>玻璃光纖</strong>，跨越整片海洋，連到地球另一端的伺服器。</p>
+        <p>這些連接彼此的海底電纜，乘載全球超過 <strong>99%</strong> 的網路流量。</p>
       </aside>
     </div>
   </div>
@@ -166,12 +165,18 @@ SCROLL
     <div class="sea-stage">
       <svg class="sea-svg" viewBox="-240 0 1920 860" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
-          <pattern id="sea-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-            <path d="M32 0 H0 V32" fill="none" stroke="#c5d8e6" stroke-width="0.8"></path>
-          </pattern>
-          <pattern id="sea-hatch" width="9" height="9" patternTransform="rotate(42)" patternUnits="userSpaceOnUse">
-            <line x1="0" y1="0" x2="0" y2="9" stroke="#9bb4c6" stroke-width="1.15"></line>
-          </pattern>
+          <linearGradient id="sea-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f4fbfe"></stop>
+            <stop offset="100%" stop-color="#eaf9ff"></stop>
+          </linearGradient>
+          <linearGradient id="sea-water" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#d5ebf5"></stop>
+            <stop offset="100%" stop-color="#78b4e6"></stop>
+          </linearGradient>
+          <linearGradient id="sea-bed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f7fbfe"></stop>
+            <stop offset="100%" stop-color="#e7f1f4"></stop>
+          </linearGradient>
           <filter id="sea-glow" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="2.4" result="b"></feGaussianBlur>
             <feMerge>
@@ -180,17 +185,15 @@ SCROLL
             </feMerge>
           </filter>
         </defs>
-        <rect x="-240" y="-80" width="1920" height="1020" fill="#f4fafd"></rect>
-        <rect x="-240" y="-80" width="1920" height="1020" fill="url(#sea-grid)" opacity="0.7"></rect>
+        <rect x="-240" y="-80" width="1920" height="1020" fill="url(#sea-sky)"></rect>
 
         <g transform="translate(0 90)">
-          <path d="M-240,310 H736 V326 H832 V310 H1104 V332 H1268 V310 H1680 L1680,500 C1260,528 1140,604 1000,620 C850,636 700,596 560,546 L-240,520 Z" fill="#d5ebf5" opacity="0.55"></path>
-          <path d="M-240,520 L560,546 C700,596 850,636 1000,620 C1140,604 1260,528 1360,508 L1680,500 L1680,860 L-240,860 Z" fill="#e7f1f4"></path>
-          <path d="M-240,520 L560,546 C700,596 850,636 1000,620 C1140,604 1260,528 1360,508 L1680,500 L1680,860 L-240,860 Z" fill="url(#sea-hatch)" opacity="0.55"></path>
-          <path d="M-240,520 L560,546 C700,596 850,636 1000,620 C1140,604 1260,528 1360,508 L1680,500" fill="none" stroke="#082840" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"></path>
-          <line x1="-240" y1="310" x2="736" y2="310" stroke="#082840" stroke-width="2.8" stroke-linecap="round"></line>
-          <line x1="832" y1="310" x2="1104" y2="310" stroke="#082840" stroke-width="2.8" stroke-linecap="round"></line>
-          <line x1="1268" y1="310" x2="1680" y2="310" stroke="#082840" stroke-width="2.8" stroke-linecap="round"></line>
+          <path d="M-240,310 H736 V326 H832 V310 H1104 V332 H1268 V310 H1680 L1680,500 C1260,528 1140,604 1000,620 C850,636 700,596 560,546 L-240,520 Z" fill="url(#sea-water)"></path>
+          <path d="M-240,520 L560,546 C700,596 850,636 1000,620 C1140,604 1260,528 1360,508 L1680,500 L1680,860 L-240,860 Z" fill="url(#sea-bed)"></path>
+          <path d="M-240,520 L560,546 C700,596 850,636 1000,620 C1140,604 1260,528 1360,508 L1680,500" fill="none" stroke="#082840" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"></path>
+          <line x1="-240" y1="310" x2="736" y2="310" stroke="#082840" stroke-width="2.2" stroke-linecap="round"></line>
+          <line x1="832" y1="310" x2="1104" y2="310" stroke="#082840" stroke-width="2.2" stroke-linecap="round"></line>
+          <line x1="1268" y1="310" x2="1680" y2="310" stroke="#082840" stroke-width="2.2" stroke-linecap="round"></line>
 
           <path class="sea-snag-cable" d="M-240,504 L580,530 C720,580 860,620 1000,604 C1048,598 1086,548 1114,470 C1138,412 1152,400 1170,400 C1188,400 1202,412 1226,482 C1250,554 1296,512 1340,492 L1680,484" fill="none" stroke="#f0c14d" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" filter="url(#sea-glow)">
             <animate attributeName="d" dur="2.8s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" values="M-240,504 L580,530 C720,580 860,620 1000,604 C1048,598 1086,548 1114,470 C1138,412 1152,400 1170,400 C1188,400 1202,412 1226,482 C1250,554 1296,512 1340,492 L1680,484;M-240,504 L580,530 C720,580 860,620 1000,604 C1048,598 1086,542 1114,456 C1138,398 1152,386 1170,386 C1188,386 1202,398 1226,468 C1250,548 1296,510 1340,492 L1680,484;M-240,504 L580,530 C720,580 860,620 1000,604 C1048,598 1086,548 1114,470 C1138,412 1152,400 1170,400 C1188,400 1202,412 1226,482 C1250,554 1296,512 1340,492 L1680,484"></animate>
@@ -202,7 +205,7 @@ SCROLL
           <g font-family="Noto Sans TC, PingFang TC, sans-serif">
             <text x="780" y="188" text-anchor="middle" fill="#4a6680" font-size="13" font-weight="600">漁船</text>
             <g transform="translate(780 310)" fill="none" stroke="#082840" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
-              <path d="M-54 -44 L-38 16 H46 L64 -44 Z" fill="#f7fbfe"></path>
+              <path d="M-54 -44 L-38 16 H46 L64 -44 Z" fill="#ffffff"></path>
               <line x1="-54" y1="-44" x2="64" y2="-44"></line>
               <rect x="-8" y="-78" width="38" height="34" fill="#f7fbfe"></rect>
               <rect x="2" y="-68" width="10" height="12" fill="#d7eef8" stroke-width="1.3"></rect>
@@ -224,7 +227,7 @@ SCROLL
 
             <text x="1170" y="198" text-anchor="middle" fill="#4a6680" font-size="13" font-weight="600">船隻</text>
             <g transform="translate(1170 310)" fill="none" stroke="#082840" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
-              <path d="M-76 -28 L-56 20 H88 L110 -28 Z" fill="#f7fbfe"></path>
+              <path d="M-76 -28 L-56 20 H88 L110 -28 Z" fill="#ffffff"></path>
               <rect x="2" y="-66" width="64" height="38" fill="#f7fbfe"></rect>
               <rect x="20" y="-88" width="18" height="22" fill="#f7fbfe"></rect>
               <g fill="#d7eef8" stroke="#082840" stroke-width="1.3">
@@ -253,10 +256,10 @@ SCROLL
       </svg>
       <aside class="panel">
         <p class="panel-kicker">近海 · 人為損壞</p>
-        <h2>船錨一勾，<br>海纜就斷</h2>
+        <h2>海纜其實很脆弱</h2>
         <div class="panel-rule"></div>
-        <p>近海的電纜會埋進海床，為的是避開漁網、船錨與底拖網。即便如此，全球每年海纜損壞仍有<strong>七成以上來自這類船隻活動</strong>。</p>
-        <p>錨爪或拖網一旦勾到裸露的電纜，就能把它從海床扯起、拉彎甚至切斷。馬祖海域近年的抽砂，更讓原本埋好的電纜露出來，過路船一拋錨就特別危險。</p>
+        <p>為了避開漁網、船錨與底拖網等人為活動的損害，電纜安裝在近海時，會被埋進海床。即便如此，全球每年海纜損壞仍有<strong>七成以上來自這類活動</strong>。</p>
+        <p>而近年中國抽砂船在馬祖海域大規模盜採海砂，讓原本埋好的電纜裸露於海床，更容易被損壞。一旦損壞或斷裂，必須請求國際維修船隊來維修，通常耗時數月。</p>
       </aside>
     </div>
   </div>
@@ -268,10 +271,9 @@ SCROLL
       <div class="landing-map-veil" aria-hidden="true"></div>
       <aside class="panel">
         <p class="panel-kicker">上岸</p>
-        <h2>電纜登陸站：<br>海底與陸地的交匯</h2>
+        <h2>電纜登陸站</h2>
         <div class="panel-rule"></div>
-        <p>海底電纜透過「電纜登陸站」與陸地接壤。建築內有<strong>訊號中繼設備</strong>、<strong>電纜監控系統</strong>與<strong>電力饋送裝置</strong>。</p>
-        <p>台灣本島到國外有 5 個登陸點：宜蘭頭城、新北八里、新北淡水、屏東枋山、台東大武。</p>
+        <p>海底電纜透過「電纜登陸站」與陸地接壤，將訊號傳上陸地。臺灣本島到國外有 5 個登陸點：宜蘭頭城、新北八里、新北淡水、屏東枋山、台東大武。</p>
       </aside>
     </div>
   </div>
@@ -283,14 +285,14 @@ SCROLL
       <div class="landing-map-veil" aria-hidden="true"></div>
       <aside class="panel">
         <p class="panel-kicker">全球</p>
-        <h2>台灣連接世界的數位生命線</h2>
+        <h2>連接世界的數位生命線</h2>
         <div class="panel-rule"></div>
-        <p>台灣現有 <strong>10 條</strong>連接離島的國內海纜、<strong>15 條</strong>國際海纜，延伸至<strong>日本、美國、菲律賓、香港與東南亞</strong>，是台灣對外通訊的命脈。</p>
+        <p>臺灣現有 <strong>10 條</strong>連接離島的國內海纜、<strong>15 條</strong>國際海纜，延伸至<strong>日本、美國、菲律賓、香港與東南亞</strong>，是台灣對外通訊的命脈。</p>
       </aside>
     </div>
   </div>
 </section>
-<section class="articles end-block" id="articles"> <div class="articles-intro"> <p class="section-kicker">看見海纜，只是開始</p> <h2 class="articles-headline">我們應該如何準備網路韌性風險？</h2> <p class="articles-lead">從「我們怎麼認知」、「系統有多脆弱」、「該怎麼準備」、「如何自行觀測」四個切角來看見。</p> </div> <div class="articles-grid" data-from-markdown></div> </section> <section class="portals end-block" id="portals"> <div class="portals-inner"> <header class="portals-header"> <p class="section-kicker">想再走深一點？</p> <h2 class="portals-title">更多內容</h2> <p class="portals-lead">與台灣海纜韌性相關的其他工具：</p> </header> <div class="portals-grid"> <a class="portal-card" href="https://smc.peering.tw/" target="_blank" rel="noopener noreferrer"> <div class="card-top"> <span class="portal-num">01</span> <span class="portal-domain">smc.peering.tw ↗</span> </div> <h3>台灣海纜動態地圖</h3> <p class="portal-card-desc">互動式地圖即時呈現連接台灣的海纜系統、登陸點，並收錄歷年斷線事件記錄。</p> <span class="card-arrow">→</span> </a><a class="portal-card" href="https://resilience.ocf.tw/web/" target="_blank" rel="noopener noreferrer"> <div class="card-top"> <span class="portal-num">02</span> <span class="portal-domain">resilience.ocf.tw ↗</span> </div> <h3>海纜斷掉時，台灣人常用的網站會動嗎？</h3> <p class="portal-card-desc">檢測 1,859 個台灣常用網站：在海纜斷光或極度壅塞時，約 47% 可能打不開、42% 風險偏高，僅 11% 較有韌性。可輸入任一網址查看結果。</p> <span class="card-arrow">→</span> </a><a class="portal-card" href="https://srtt.ocf.tw/" target="_blank" rel="noopener noreferrer"> <div class="card-top"> <span class="portal-num">03</span> <span class="portal-domain">srtt.ocf.tw ↗</span> </div> <h3>數位服務韌性檢測工具 SRTT</h3> <p class="portal-card-desc">開放文化基金會（OCF）開發的線上工具，用來檢測數位服務在對外連線受阻（例如海纜中斷、極度壅塞）情境下的韌性。</p> <span class="card-arrow">→</span> </a> </div> </div> </section> <footer class="site-footer" id="footer">
+<div data-article-scenes></div> <section class="portals end-block" id="portals"> <div class="portals-inner"> <header class="portals-header"> <p class="section-kicker">想再走深一點？</p> <h2 class="portals-title">更多內容</h2> <p class="portals-lead">與臺灣海纜韌性相關的其他工具：</p> </header> <div class="portals-grid"> <a class="portal-card" href="https://smc.peering.tw/" target="_blank" rel="noopener noreferrer"> <div class="card-top"> <span class="portal-num">01</span> <span class="portal-domain">smc.peering.tw ↗</span> </div> <h3>臺灣海纜動態地圖</h3> <p class="portal-card-desc">互動式地圖即時呈現連接臺灣的海纜系統、登陸點，並收錄歷年斷線事件紀錄。</p> <span class="card-arrow">→</span> </a><a class="portal-card" href="https://resilience.ocf.tw/web/" target="_blank" rel="noopener noreferrer"> <div class="card-top"> <span class="portal-num">02</span> <span class="portal-domain">resilience.ocf.tw ↗</span> </div> <h3>海纜斷掉時，臺灣人常用的網站還會動嗎？</h3> <p class="portal-card-desc">檢測 1,859 個臺灣常用網站：在海纜斷光或極度壅塞時，約 47% 可能打不開、42% 風險偏高，僅 11% 較有韌性。可輸入任一網址查看結果。</p> <span class="card-arrow">→</span> </a><a class="portal-card" href="https://srtt.ocf.tw/" target="_blank" rel="noopener noreferrer"> <div class="card-top"> <span class="portal-num">03</span> <span class="portal-domain">srtt.ocf.tw ↗</span> </div> <h3>數位服務韌性檢測工具 SRTT</h3> <p class="portal-card-desc">開放文化基金會（OCF）開發的線上工具，用來檢測數位服務在對外連線受阻（例如海纜中斷、極度壅塞）情境下的韌性。</p> <span class="card-arrow">→</span> </a> </div> </div> </section> <footer class="site-footer" id="footer">
   <div class="footer-inner">
     <a class="footer-org" href="https://ocf.tw/" target="_blank" rel="noopener noreferrer">開放文化基金會</a>
     <nav class="footer-nav" aria-label="頁尾">
@@ -302,6 +304,15 @@ SCROLL
   </div>
 </footer>
   </main>
+  <dialog class="article-dialog" id="article-modal" aria-label="文章">
+    <div class="article-dialog-bar">
+      <button type="button" class="article-dialog-close" data-article-close aria-label="關閉文章">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L10.94 12l-5.72 5.72a.75.75 0 1 0 1.06 1.06L12 13.06l5.72 5.72a.75.75 0 1 0 1.06-1.06L13.06 12l5.72-5.72a.75.75 0 0 0-1.06-1.06L12 10.94 6.28 5.22Z"/></svg>
+      </button>
+    </div>
+    <div class="article-dialog-scroll" id="article-modal-content"></div>
+  </dialog>
+  <div id="article-templates" hidden></div>
   <script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
   <script src="./cover-map.js"></script>
   <script src="./app.js"></script>

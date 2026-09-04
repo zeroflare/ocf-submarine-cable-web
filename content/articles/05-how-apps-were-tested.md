@@ -3,9 +3,14 @@ title: 這些 App 是怎麼測的？
 subtitle: 檢測方法
 order: 5
 description: 這次十一款 App 怎麼測：用 SRTT 看 DNS 與連線國家，必要時再用 Stream 看 API 欄位。
-pubDate: 2026-08-25
+quote: 問題不在「有沒有連網」，而在「連到誰、在哪裡」。
+image: /images/05-ui-dns.png
+author: 周詳
+pubDate: 2026-07-30
 draft: false
 ---
+
+*文／周詳*
 
 方法寫在開放文化基金會的簡報裡：[《數位服務韌性檢測工具（SRTT）by OCF》](https://docs.google.com/presentation/d/1Pj9pSy5K9w1ehX5dsC7cOoDFwmkwbCS2cEdn2K981sc/edit?usp=sharing)（g0v Summit 2026.05.24，講者周詳）。工具網站是 [srtt.ocf.tw](https://srtt.ocf.tw/)。這次測十一款 App，就是照這份簡報，用 DNS 把連線位置與境外流量畫出來；需要看 API 欄位時，再在 iOS 上用 Stream 拆 HTTPS。
 
@@ -17,7 +22,7 @@ draft: false
 
 **SRTT** 是 Service Resilience Testing Tool 的縮寫，中文叫數位服務韌性檢測工具。簡報的定義是：一套開源的行動裝置網路觀測工具，**透過 DNS 協助你看見手機 App 實際連線到哪些國家、服務商與服務。**
 
-![數位服務韌性檢測工具（SRTT）是什麼](/images/00-what.png)
+![數位服務韌性檢測工具（SRTT）是什麼](/images/05-what.png)
 
 四件事要先講清楚：
 
@@ -48,7 +53,7 @@ ASN（Autonomous System Number）是每家網路服務商的編號。透過它�
 
 簡報寫的流程，這次就是這樣測的：
 
-![SRTT 操作流程](/images/06b-flow.png)
+![SRTT 操作流程](/images/05-flow.png)
 
 1. 將手機 DNS 設定到 SRTT DNS。
 2. 在網站輸入手機 IP，並開始分析。
@@ -57,13 +62,13 @@ ASN（Autonomous System Number）是每家網路服務商的編號。透過它�
 
 快照把資料壓在網址裡做靜態分享，伺服器不會保留。網站上的實際畫面是這樣：
 
-![在 srtt.ocf.tw 設定手機 DNS 與 IP](/images/06-steps.png)
+![在 srtt.ocf.tw 設定手機 DNS 與 IP](/images/05-steps.png)
 
 測的時候走完主要功能：啟動、登入、各分頁點一次、觸發核心動作（報案、查病歷、訂票），再閒置一下看背景心跳。這次用的是 iPhone。關掉其他 App，是為了讓列表上的域名盡量只來自眼前這一款。
 
 開始之後，地圖和列表會即時更新：總查詢數、境外比例、不重複網域，以及 Top 網域、國家、服務、ASN。
 
-![SRTT 即時 DNS 分佈畫面](/images/07-ui-dns.png)
+![SRTT 即時 DNS 分佈畫面](/images/05-ui-dns.png)
 
 ## 用 ping 修正國家：小於 15 毫秒視為台灣
 
@@ -95,5 +100,4 @@ SRTT 刻意不拆信件。要知道 App 送出什麼欄位——例如健保是�
 
 簡報最後一句也是這次想做的：**不是監控網路，而是讓網路變得可被理解。**
 
-工具在 [srtt.ocf.tw](https://srtt.ocf.tw/)。簡報：[Google 簡報](https://docs.google.com/presentation/d/1Pj9pSy5K9w1ehX5dsC7cOoDFwmkwbCS2cEdn2K981sc/edit?usp=sharing)。十一款測完之後怎麼讀，見[海纜斷了，你手機裡的 App 還能用嗎？](/articles/02-apps-when-cables-break/)。
-
+工具在 [srtt.ocf.tw](https://srtt.ocf.tw/)。簡報：[Google 簡報](https://docs.google.com/presentation/d/1Pj9pSy5K9w1ehX5dsC7cOoDFwmkwbCS2cEdn2K981sc/edit?usp=sharing)。十一款測完之後怎麼讀，見[海纜斷了，你手機裡的 App 還能用嗎？](/articles/04-apps-still-work/)。

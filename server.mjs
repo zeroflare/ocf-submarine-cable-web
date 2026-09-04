@@ -2,7 +2,6 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildSite } from './build-site.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const SRC = path.join(ROOT, 'src');
@@ -95,8 +94,9 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-function rebuild(reason = '') {
+async function rebuild(reason = '') {
   const started = Date.now();
+  const { buildSite } = await import(`./build-site.mjs?t=${Date.now()}`);
   const result = buildSite();
   const suffix = reason ? ` (${reason})` : '';
   console.log(`compile ${result.articles} md → dist/${suffix} ${Date.now() - started}ms`);
@@ -167,11 +167,7 @@ function watchSources() {
   const queue = (reason) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      try {
-        rebuild(reason);
-      } catch (err) {
-        console.error(err);
-      }
+      rebuild(reason).catch((err) => console.error(err));
     }, 80);
   };
   for (const dir of dirs) {
@@ -184,7 +180,7 @@ function watchSources() {
   }
 }
 
-rebuild('start');
+rebuild('start').catch((err) => console.error(err));
 watchSources();
 
 server.listen(PORT, HOST, () => {

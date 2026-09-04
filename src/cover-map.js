@@ -1,66 +1,120 @@
-const STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+const STYLE_LIGHT = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+const STYLE_DARK = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+
+function mapStyleUrl() {
+  return document.documentElement.dataset.theme === 'dark' ? STYLE_DARK : STYLE_LIGHT;
+}
+
+function onThemeChange(fn) {
+  window.addEventListener('themechange', fn);
+}
 
 const CABLE_COLOR = '#7ebfd4';
 const GOLD_CABLE = '#e8b84a';
 const DEFAULT = { lng: 125.57498, lat: 23.70176, z: 6 };
 
+function coverCableColor() {
+  return CABLE_COLOR;
+}
+
 function restyleBaseMap(map) {
-  const inlandWater = ['lake', 'pond', 'reservoir', 'basin', 'river', 'canal', 'ditch', 'stream', 'drain', 'swamp', 'wetland'];
-  for (const layer of map.getStyle().layers ?? []) {
-    const id = layer.id;
-    const hide =
-      layer.type === 'symbol' ||
-      id === 'boundary_county' ||
-      id === 'boundary_state' ||
-      id === 'waterway' ||
-      id.startsWith('road_') ||
-      id.startsWith('tunnel_') ||
-      id.startsWith('bridge_') ||
-      id.startsWith('rail') ||
-      id.startsWith('aeroway');
-    if (hide) {
-      map.setLayoutProperty(id, 'visibility', 'none');
+  try {
+    const inlandWater = ['lake', 'pond', 'reservoir', 'basin', 'river', 'canal', 'ditch', 'stream', 'drain', 'swamp', 'wetland'];
+    for (const layer of map.getStyle().layers ?? []) {
+      const id = layer.id;
+      const hide =
+        layer.type === 'symbol' ||
+        id === 'boundary_county' ||
+        id === 'boundary_state' ||
+        id === 'waterway' ||
+        id.startsWith('road_') ||
+        id.startsWith('tunnel_') ||
+        id.startsWith('bridge_') ||
+        id.startsWith('rail') ||
+        id.startsWith('aeroway');
+      if (hide) {
+        map.setLayoutProperty(id, 'visibility', 'none');
+      }
     }
+    const oceanOnly = ['all', ['==', '$type', 'Polygon'], ['!', ['in', 'class', ...inlandWater]]];
+    if (map.getLayer('water')) map.setFilter('water', oceanOnly);
+    if (map.getLayer('water_shadow')) map.setFilter('water_shadow', oceanOnly);
+  } catch {
+    /* Positron / Dark Matter 圖層名稱不完全相同 */
   }
-  const oceanOnly = ['all', ['==', '$type', 'Polygon'], ['!', ['in', 'class', ...inlandWater]]];
-  if (map.getLayer('water')) map.setFilter('water', oceanOnly);
-  if (map.getLayer('water_shadow')) map.setFilter('water_shadow', oceanOnly);
+}
+
+let cablesCache = null;
+const breathingMaps = new WeakSet();
+
+async function loadCablesData() {
+  if (!cablesCache) {
+    cablesCache = await fetch('./cables.json').then((res) => res.json());
+  }
+  return cablesCache;
+}
+
+function applyMapStyle(map, onReady) {
+  map.setStyle(mapStyleUrl(), {
+    diff: false,
+    transformStyle: (prev, next) => {
+      if (!prev) return next;
+      const sources = { ...next.sources };
+      const layers = [...next.layers];
+      if (prev.sources?.cables) sources.cables = prev.sources.cables;
+      for (const layer of prev.layers ?? []) {
+        if (layer.id === 'cables-glow' || layer.id === 'cables-line') layers.push(layer);
+      }
+      return { ...next, sources, layers };
+    },
+  });
+  map.once('style.load', onReady);
+}
+
+function cableLayers(color) {
+  const gold = color === GOLD_CABLE;
+  return [
+    {
+      id: 'cables-glow',
+      type: 'line',
+      source: 'cables',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': color,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 4, gold ? 3.2 : 2.2, 7, gold ? 4.4 : 3.6, 10, gold ? 6 : 5],
+        'line-opacity': gold ? 0.22 : 0.12,
+        'line-blur': 1.2,
+        'line-opacity-transition': { duration: 0 },
+        'line-blur-transition': { duration: 0 },
+      },
+    },
+    {
+      id: 'cables-line',
+      type: 'line',
+      source: 'cables',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': color,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 4, gold ? 1.4 : 0.9, 7, gold ? 2.2 : 1.6, 10, gold ? 3 : 2.4],
+        'line-opacity': gold ? 0.88 : 0.4,
+        'line-opacity-transition': { duration: 0 },
+      },
+    },
+  ];
 }
 
 async function addCables(map, { breathe = true, root, color = CABLE_COLOR } = {}) {
-  const data = await fetch('./cables.json').then((res) => res.json());
-  if (map.getSource('cables')) return;
-
-  const gold = color === GOLD_CABLE;
-  map.addSource('cables', { type: 'geojson', data });
-  map.addLayer({
-    id: 'cables-glow',
-    type: 'line',
-    source: 'cables',
-    layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: {
-      'line-color': color,
-      'line-width': ['interpolate', ['linear'], ['zoom'], 4, gold ? 3.2 : 2.2, 7, gold ? 4.4 : 3.6, 10, gold ? 6 : 5],
-      'line-opacity': gold ? 0.22 : 0.12,
-      'line-blur': 1.2,
-      'line-opacity-transition': { duration: 0 },
-      'line-blur-transition': { duration: 0 },
-    },
-  });
-  map.addLayer({
-    id: 'cables-line',
-    type: 'line',
-    source: 'cables',
-    layout: { 'line-cap': 'round', 'line-join': 'round' },
-    paint: {
-      'line-color': color,
-      'line-width': ['interpolate', ['linear'], ['zoom'], 4, gold ? 1.4 : 0.9, 7, gold ? 2.2 : 1.6, 10, gold ? 3 : 2.4],
-      'line-opacity': gold ? 0.88 : 0.4,
-      'line-opacity-transition': { duration: 0 },
-    },
-  });
-  if (breathe) {
-    breatheCables(map, root, gold ? { line: [0.62, 1], glow: [0.16, 0.4] } : undefined);
+  const data = await loadCablesData();
+  if (!map.getSource('cables')) {
+    map.addSource('cables', { type: 'geojson', data });
+  }
+  for (const layer of cableLayers(color)) {
+    if (!map.getLayer(layer.id)) map.addLayer(layer);
+    else map.setPaintProperty(layer.id, 'line-color', color);
+  }
+  if (breathe && !breathingMaps.has(map)) {
+    breathingMaps.add(map);
+    breatheCables(map, root, color === GOLD_CABLE ? { line: [0.62, 1], glow: [0.16, 0.4] } : undefined);
   }
 }
 
@@ -76,14 +130,20 @@ function breatheCables(map, root = document.getElementById('cover'), ranges) {
   const lerp = (range, t) => range[0] + (range[1] - range[0]) * t;
 
   const tick = (now) => {
-    if (!visible || !map.getLayer('cables-line')) {
+    if (!visible) {
       raf = 0;
       return;
     }
-    const t = (1 - Math.cos(((now % period) / period) * Math.PI * 2)) / 2;
-    map.setPaintProperty('cables-line', 'line-opacity', lerp(line, t));
-    map.setPaintProperty('cables-glow', 'line-opacity', lerp(glow, t));
-    map.setPaintProperty('cables-glow', 'line-blur', 0.8 + 2.8 * t);
+    try {
+      if (map.isStyleLoaded() && map.getLayer('cables-line') && map.getLayer('cables-glow')) {
+        const t = (1 - Math.cos(((now % period) / period) * Math.PI * 2)) / 2;
+        map.setPaintProperty('cables-line', 'line-opacity', lerp(line, t));
+        map.setPaintProperty('cables-glow', 'line-opacity', lerp(glow, t));
+        map.setPaintProperty('cables-glow', 'line-blur', 0.8 + 2.8 * t);
+      }
+    } catch {
+      /* setStyle 期間圖層會暫時不在 */
+    }
     raf = requestAnimationFrame(tick);
   };
 
@@ -130,7 +190,7 @@ function initCoverMap() {
 
   const map = new maplibregl.Map({
     container,
-    style: STYLE,
+    style: mapStyleUrl(),
     center: [DEFAULT.lng, DEFAULT.lat],
     zoom: DEFAULT.z,
     interactive: true,
@@ -142,11 +202,14 @@ function initCoverMap() {
     fadeDuration: 0,
   });
 
-  map.on('load', async () => {
+  const paint = async () => {
     restyleBaseMap(map);
-    await addCables(map);
+    await addCables(map, { color: coverCableColor() });
     map.resize();
-  });
+  };
+
+  map.on('load', paint);
+  onThemeChange(() => applyMapStyle(map, paint));
 
   document.getElementById('cover-zoom-in')?.addEventListener('click', () => {
     map.zoomIn({ duration: 0 });
@@ -441,7 +504,7 @@ async function initPaleTaiwanMap(containerId, sceneId, { routes = true, cables =
   const editView = savedView && isLocalDev();
   const map = new maplibregl.Map({
     container,
-    style: STYLE,
+    style: mapStyleUrl(),
     center: view ? [view.lng, view.lat] : [121.05, 23.72],
     zoom: view ? view.zoom : 7,
     interactive: false,
@@ -455,16 +518,16 @@ async function initPaleTaiwanMap(containerId, sceneId, { routes = true, cables =
     fadeDuration: 0,
   });
 
-  map.on('load', async () => {
+  const paint = async ({ first = false } = {}) => {
     restyleBaseMap(map);
     if (cables) await addCables(map, { breathe: true, root: scene, color: GOLD_CABLE });
-    if (pins || routes) {
+    if (first && (pins || routes)) {
       const sites = await loadLandings();
       if (pins) addLandingPins(map, sites);
       if (routes) addLandingRoutes(map, sites);
     }
-    if (editView) mountTaiwanEditTools(scene, map);
-    if (destinations) {
+    if (first && editView) mountTaiwanEditTools(scene, map);
+    if (first && destinations) {
       addDestinationPins(map, await loadDestinations(), {
         editable: editView,
         hint: scene.querySelector('.taiwan-view-hint'),
@@ -473,7 +536,10 @@ async function initPaleTaiwanMap(containerId, sceneId, { routes = true, cables =
     if (savedView) applyTaiwanView(map, view);
     else fitLandingMap(map);
     map.resize();
-  });
+  };
+
+  map.on('load', () => paint({ first: true }));
+  onThemeChange(() => applyMapStyle(map, () => paint()));
 
   window.addEventListener('resize', () => {
     map.resize();

@@ -25,7 +25,7 @@ npm run build
 
 ## 新增或修改文章
 
-1. 編輯或新增 [`content/articles/`](content/articles/) 裡的 Markdown，檔名即網址 slug（例如 `05-how-apps-were-tested.md` → `/articles/05-how-apps-were-tested/`）。
+1. 編輯或新增 [`content/articles/`](content/articles/) 裡的 Markdown，檔名即網址 slug（例如 `04-apps-still-work.md` → 首頁 `#article/04-apps-still-work`，搜尋引擎仍可讀 `/articles/04-apps-still-work/`）。
 2. 開頭寫 frontmatter：
 
 ```yaml
