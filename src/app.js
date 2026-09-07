@@ -253,52 +253,7 @@ function initArticleModal() {
   if (initial && templates.has(initial)) openArticle(initial, 'boot');
 }
 
-const THEME_KEY = 'theme';
-
-function currentTheme() {
-  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-}
-
-function syncThemeToggle() {
-  const dark = currentTheme() === 'dark';
-  document.querySelectorAll('.theme-toggle').forEach((btn) => {
-    btn.setAttribute('aria-pressed', String(dark));
-    btn.setAttribute('aria-label', dark ? '切換成淺色模式' : '切換成深色模式');
-  });
-}
-
-function applyTheme(theme, persist = true) {
-  document.documentElement.dataset.theme = theme;
-  if (persist) {
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {
-      /* ignore */
-    }
-  }
-  syncThemeToggle();
-  window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
-}
-
-function initTheme() {
-  syncThemeToggle();
-  document.querySelectorAll('.theme-toggle').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
-    });
-  });
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-    try {
-      if (localStorage.getItem(THEME_KEY)) return;
-    } catch {
-      /* ignore */
-    }
-    applyTheme(event.matches ? 'dark' : 'light', false);
-  });
-}
-
 function init() {
-  initTheme();
   initNav();
   initScrollStory();
   initReducedMotion();

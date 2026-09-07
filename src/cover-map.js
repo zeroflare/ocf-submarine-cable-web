@@ -1,12 +1,7 @@
-const STYLE_LIGHT = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 const STYLE_DARK = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
 function mapStyleUrl() {
-  return document.documentElement.dataset.theme === 'dark' ? STYLE_DARK : STYLE_LIGHT;
-}
-
-function onThemeChange(fn) {
-  window.addEventListener('themechange', fn);
+  return STYLE_DARK;
 }
 
 const CABLE_COLOR = '#7ebfd4';
@@ -52,23 +47,6 @@ async function loadCablesData() {
     cablesCache = await fetch('./cables.json').then((res) => res.json());
   }
   return cablesCache;
-}
-
-function applyMapStyle(map, onReady) {
-  map.setStyle(mapStyleUrl(), {
-    diff: false,
-    transformStyle: (prev, next) => {
-      if (!prev) return next;
-      const sources = { ...next.sources };
-      const layers = [...next.layers];
-      if (prev.sources?.cables) sources.cables = prev.sources.cables;
-      for (const layer of prev.layers ?? []) {
-        if (layer.id === 'cables-glow' || layer.id === 'cables-line') layers.push(layer);
-      }
-      return { ...next, sources, layers };
-    },
-  });
-  map.once('style.load', onReady);
 }
 
 function cableLayers(color) {
@@ -209,7 +187,6 @@ function initCoverMap() {
   };
 
   map.on('load', paint);
-  onThemeChange(() => applyMapStyle(map, paint));
 
   document.getElementById('cover-zoom-in')?.addEventListener('click', () => {
     map.zoomIn({ duration: 0 });
@@ -539,7 +516,6 @@ async function initPaleTaiwanMap(containerId, sceneId, { routes = true, cables =
   };
 
   map.on('load', () => paint({ first: true }));
-  onThemeChange(() => applyMapStyle(map, () => paint()));
 
   window.addEventListener('resize', () => {
     map.resize();

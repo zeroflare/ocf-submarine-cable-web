@@ -1,62 +1,38 @@
 :root {
-  color-scheme: light;
-  --navy: #082840;
-  --cyan: #00aee8;
-  --text-dark: #082840;
-  --text-mid: #4a6680;
-  --text-dim: #7a93a8;
-  --bg: #eaf9ff;
-  --bg-soft: #e5eef7;
-  --bg-deep: #d7e8f4;
-  --bg-alt: #e0edf5;
-  --bg-footer: #cfe4ef;
-  --bg-cover: #f4fbfe;
-  --bg-stage: #f4fafd;
-  --water: #78b4e6;
-  --bed: #b3b0ab;
-  --land: #d1dded;
-  --node: #4a90e2;
-  --card: #ffffff;
-  --nav-bg: #ffffff;
-  --nav-border: rgba(8, 40, 64, 0.08);
-  --nav-hover: rgba(0, 120, 200, 0.08);
-  --card-border: rgba(0, 120, 200, 0.14);
-  --card-hover: #f4fbff;
-  --link: #0066cc;
-  --prose: #243444;
-  --article-bg: #ffffff;
-  --tool-bg: #ffffff;
-  --header-h: 58px;
-  --divider: rgba(8, 40, 64, 0.2);
-  --shadow: rgba(8, 40, 64, 0.08);
-}
-
-html[data-theme='dark'] {
   color-scheme: dark;
-  --navy: #d7ecf8;
-  --cyan: #4ec8f0;
-  --text-dark: #e6f2f8;
-  --text-mid: #9bb4c6;
-  --text-dim: #7f97a8;
-  --bg: #0b1824;
-  --bg-soft: #122433;
-  --bg-deep: #0e1f2d;
-  --bg-alt: #10202e;
-  --bg-footer: #0a1520;
-  --bg-cover: #08141e;
-  --bg-stage: #0b1824;
-  --card: #152635;
-  --nav-bg: #0f1c28;
-  --nav-border: rgba(180, 220, 240, 0.1);
-  --nav-hover: rgba(78, 200, 240, 0.12);
-  --card-border: rgba(78, 200, 240, 0.18);
-  --card-hover: #1b3144;
-  --link: #6ec8ff;
-  --prose: #d5e4ee;
-  --article-bg: #0b1824;
-  --tool-bg: #152635;
-  --divider: rgba(180, 220, 240, 0.16);
-  --shadow: rgba(0, 0, 0, 0.32);
+  --navy: #dfeefb;
+  --cyan: #52c7f2;
+  --text-dark: #eaf3fa;
+  --text-mid: #a7c0d2;
+  --text-dim: #85a0b3;
+  --bg: #0a1420;
+  --bg-soft: #101f2d;
+  --bg-alt: #0d1b28;
+  --bg-footer: #070f18;
+  --bg-cover: #060d15;
+  --bg-stage: #0c1c2a;
+  --card: #12222f;
+  --nav-bg: #0b1620;
+  --nav-border: rgba(180, 210, 235, 0.12);
+  --nav-hover: rgba(82, 199, 242, 0.14);
+  --card-border: rgba(100, 200, 240, 0.2);
+  --card-hover: #17293a;
+  --link: #7cd4ff;
+  --prose: #dce7ef;
+  --article-bg: #0a1420;
+  --tool-bg: #12222f;
+  --header-h: 58px;
+  --divider: rgba(180, 210, 235, 0.16);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --illus-sky-1: #0d1e2e;
+  --illus-sky-2: #0a1622;
+  --illus-sea-1: #123244;
+  --illus-sea-2: #0a2030;
+  --illus-bed-1: #182430;
+  --illus-bed-2: #10181f;
+  --illus-line: var(--navy);
+  --illus-glow: #2f5770;
+  --illus-ink: #050d16;
 }
 
 *,
@@ -230,43 +206,6 @@ button {
 .site-nav.is-open .site-nav-burger::after {
   top: 0;
   transform: rotate(-45deg);
-}
-
-.theme-toggle {
-  order: 3;
-  margin-left: 8px;
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  color: var(--navy);
-  background: var(--card);
-  border: 1.5px solid color-mix(in srgb, var(--navy) 32%, transparent);
-  flex-shrink: 0;
-}
-
-.theme-toggle:hover {
-  color: var(--cyan);
-  border-color: var(--cyan);
-}
-
-.theme-toggle svg {
-  width: 22px;
-  height: 22px;
-}
-
-.theme-icon-sun {
-  display: none;
-}
-
-html[data-theme='dark'] .theme-icon-moon {
-  display: none;
-}
-
-html[data-theme='dark'] .theme-icon-sun {
-  display: block;
 }
 
 /* ── Progress dots ── */
@@ -455,11 +394,7 @@ html[data-theme='dark'] .theme-icon-sun {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: rgba(244, 251, 254, 0.16);
-}
-
-html[data-theme='dark'] .cover-map-veil {
-  background: rgba(8, 20, 30, 0.28);
+  background: radial-gradient(ellipse 60% 55% at 50% 42%, rgba(6, 13, 21, 0.2) 0%, rgba(6, 13, 21, 0.55) 100%);
 }
 
 .cover-map-attrib {
@@ -1097,12 +1032,7 @@ dialog.article-dialog::backdrop {
 
 html:has(.article-modal-page),
 html:has(.article-modal-page) body {
-  background: #082840;
-}
-
-html[data-theme='dark']:has(.article-modal-page),
-html[data-theme='dark']:has(.article-modal-page) body {
-  background: #061018;
+  background: var(--bg-cover);
 }
 
 .flourish-embed iframe {
@@ -1343,22 +1273,12 @@ html[data-theme='dark']:has(.article-modal-page) body {
     padding: 12px 10px;
     font-size: 15px;
   }
-
-  .theme-toggle {
-    order: 3;
-    margin-left: 0;
-  }
 }
 
 @media (min-width: 1081px) {
   .site-nav-links {
     order: 2;
     margin-left: auto;
-  }
-
-  .theme-toggle {
-    order: 3;
-    margin-left: 4px;
   }
 }
 
@@ -1400,36 +1320,6 @@ html[data-theme='dark']:has(.article-modal-page) body {
     margin-top: 16px;
     font-size: 12.5px;
     line-height: 1.75;
-  }
-
-  .article-visual--photo,
-  .article-visual--quote,
-  .article-visual--chart {
-    padding: 72px 20px 46%;
-    justify-content: center;
-  }
-
-  .article-visual-veil {
-    background: linear-gradient(180deg, transparent 35%, var(--bg) 92%);
-  }
-
-  .article-quote {
-    font-size: 22px;
-    text-align: center;
-  }
-
-  .article-visual--grid[data-count='5'] {
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: 1fr 1fr;
-    padding: 0 0 38%;
-  }
-
-  .article-visual--grid[data-count='5'] img:nth-child(1),
-  .article-visual--grid[data-count='5'] img:nth-child(2),
-  .article-visual--grid[data-count='5'] img:nth-child(3),
-  .article-visual--grid[data-count='5'] img:nth-child(4),
-  .article-visual--grid[data-count='5'] img:nth-child(5) {
-    grid-column: auto;
   }
 }
 
@@ -1538,7 +1428,7 @@ html[data-theme='dark']:has(.article-modal-page) body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 10vh 6% 10vh 44%;
+  padding: 10vh max(6%, 130px) 10vh 44%;
   background:
     radial-gradient(ellipse at 70% 45%, var(--bg-soft) 0%, var(--bg) 70%);
 }
@@ -1547,13 +1437,13 @@ html[data-theme='dark']:has(.article-modal-page) body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 10vh 4% 10vh 44%;
+  padding: 10vh max(4%, 130px) 10vh 44%;
 }
 
 .article-visual--chart iframe {
   width: 100%;
   height: min(72vh, 640px);
-  border: 0;
+  border: 1px solid var(--card-border);
   border-radius: 14px;
   background: var(--card);
   box-shadow: 0 18px 48px var(--shadow);
@@ -1592,7 +1482,7 @@ html[data-theme='dark']:has(.article-modal-page) body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 12vh 8% 12vh 46%;
+  padding: 12vh max(8%, 130px) 12vh 46%;
 }
 
 .article-quote {
@@ -1655,12 +1545,6 @@ html[data-theme='dark']:has(.article-modal-page) body {
   text-underline-offset: 4px;
 }
 
-html[data-theme='dark'] .intro-svg,
-html[data-theme='dark'] .journey-svg,
-html[data-theme='dark'] .sea-svg {
-  filter: brightness(0.68) saturate(0.82) contrast(1.06);
-}
-
 .landing-map {
   position: absolute;
   inset: 0;
@@ -1714,11 +1598,11 @@ html[data-theme='dark'] .sea-svg {
 }
 
 .taiwan-view-hint[data-state='saved'] {
-  color: #1a6b4a;
+  color: #4ade80;
 }
 
 .taiwan-view-hint[data-state='error'] {
-  color: #9b2c2c;
+  color: #f87171;
 }
 
 .landing-routes-svg {
@@ -1744,12 +1628,8 @@ html[data-theme='dark'] .sea-svg {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: rgba(244, 251, 254, 0.18);
+  background: rgba(6, 13, 21, 0.32);
   z-index: 1;
-}
-
-html[data-theme='dark'] .landing-map-veil {
-  background: rgba(8, 20, 30, 0.22);
 }
 
 .land-pin {
@@ -1764,7 +1644,7 @@ html[data-theme='dark'] .landing-map-veil {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: #082840;
+  background: var(--card);
   border: 3px solid #e8b84a;
   box-shadow: 0 0 0 6px rgba(232, 184, 74, 0.22);
   box-sizing: border-box;
@@ -1808,15 +1688,15 @@ html[data-theme='dark'] .landing-map-veil {
   left: 22px;
   transform: translateY(-50%);
   padding: 3px 8px 2px;
-  background: #082840;
-  border: 1px solid rgba(8, 40, 64, 0.08);
+  background: var(--card);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
-  color: #ffffff;
+  color: var(--text-dark);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.3;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(8, 40, 64, 0.18);
+  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .land-pin--left .land-pin-label {
@@ -1842,4 +1722,46 @@ html[data-theme='dark'] .landing-map-veil {
 
 .journey-svg .signal-flow {
   animation-duration: 1.15s;
+}
+
+/* ── Small-breakpoint fixes ──
+   These must stay last in the file: the unconditional rules above
+   (added later, in the "Scene stages" section) share the same
+   specificity as the max-width:800px block earlier in this file and
+   would otherwise win the cascade by source order alone. */
+@media (max-width: 800px) {
+  .nav-dots,
+  .scene-index {
+    display: none;
+  }
+
+  .article-visual--photo,
+  .article-visual--quote,
+  .article-visual--chart {
+    padding: 72px 20px 46%;
+    justify-content: center;
+  }
+
+  .article-visual-veil {
+    background: linear-gradient(180deg, transparent 35%, var(--bg) 92%);
+  }
+
+  .article-quote {
+    font-size: 22px;
+    text-align: center;
+  }
+
+  .article-visual--grid[data-count='5'] {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr 1fr;
+    padding: 0 0 38%;
+  }
+
+  .article-visual--grid[data-count='5'] img:nth-child(1),
+  .article-visual--grid[data-count='5'] img:nth-child(2),
+  .article-visual--grid[data-count='5'] img:nth-child(3),
+  .article-visual--grid[data-count='5'] img:nth-child(4),
+  .article-visual--grid[data-count='5'] img:nth-child(5) {
+    grid-column: auto;
+  }
 }
