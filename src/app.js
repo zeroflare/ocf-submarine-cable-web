@@ -146,6 +146,11 @@ function initArticleModal() {
     return match ? decodeURIComponent(match[1]) : null;
   };
 
+  function resetModalScroll() {
+    dialog.scrollTop = 0;
+    content.scrollTop = 0;
+  }
+
   function fill(slug) {
     const tpl = templates.get(slug);
     if (!tpl) return false;
@@ -156,7 +161,7 @@ function initArticleModal() {
       title.tabIndex = -1;
       dialog.setAttribute('aria-labelledby', 'article-modal-title');
     }
-    content.scrollTop = 0;
+    resetModalScroll();
     return true;
   }
 
@@ -173,7 +178,9 @@ function initArticleModal() {
       dialog.showModal();
       document.documentElement.classList.add('is-modal-open');
     }
+    resetModalScroll();
     content.querySelector('h1')?.focus({ preventScroll: true });
+    requestAnimationFrame(resetModalScroll);
     if (reason === 'click') {
       const url = articleUrl(slug);
       if (wasOpen) history.replaceState({ article: slug }, '', url);
@@ -206,6 +213,7 @@ function initArticleModal() {
 
   dialog.addEventListener('close', () => {
     document.documentElement.classList.remove('is-modal-open');
+    resetModalScroll();
     content.replaceChildren();
     lastFocus?.focus?.();
     window.scrollTo(0, scrollY);
