@@ -154,15 +154,6 @@ function renderArticleScenes(articles) {
     .join('');
 }
 
-function renderArticleDots(articles) {
-  return articles
-    .map((article, index) => {
-      const sceneId = index === 0 ? 'articles' : `article-${padOrder(article.order)}`;
-      const label = escapeHtml(article.subtitle || article.title);
-      return `<button type="button" data-target="${sceneId}" aria-label="${label}"><span class="nav-dot"></span><span class="nav-label">${label}</span></button>`;
-    })
-    .join('');
-}
 function embedFlourish(html) {
   return html.replace(
     /<div class="(flourish-embed[^"]*)" data-src="([^"]+)">[\s\S]*?<\/div>/g,
@@ -220,11 +211,6 @@ function injectHomeArticles(html, articles) {
   if (next === html) {
     throw new Error('homepage article-scenes marker missing');
   }
-  const withDots = next.replace('<!--article-dots-->', renderArticleDots(articles));
-  if (withDots === next) {
-    throw new Error('homepage article-dots marker missing');
-  }
-  next = withDots;
   const withTemplates = next.replace(
     /<div id="article-templates"[^>]*>[\s\S]*?<\/div>/,
     `<div id="article-templates" hidden>${renderArticleTemplates(articles)}</div>`,
@@ -243,8 +229,7 @@ function siteHead({ title, description, canonical, draft, published, extra = '' 
   const publishedMeta = published
     ? `<meta property="article:published_time" content="${escapeHtml(published)}" />\n  `
     : '';
-  return `<script>(function(){try{var s=localStorage.getItem('theme');var d=s?s==='dark':matchMedia('(prefers-color-scheme:dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='light';}})();</script>
-  <meta charset="UTF-8" />
+  return `<meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}" />
@@ -270,10 +255,6 @@ function navHtml(homeHref, active = '') {
   };
   return `<header class="site-nav" id="site-nav">
     <a class="site-nav-brand" href="${homeHref}">海纜韌性觀測站</a>
-    <button class="theme-toggle" type="button" aria-label="切換成深色模式" aria-pressed="false">
-      <svg class="theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.53 1.72a.75.75 0 0 1 .16.82A8.97 8.97 0 0 0 9 6a9 9 0 0 0 9 9 8.97 8.97 0 0 0 3.46-.69.75.75 0 0 1 .98.98A10.5 10.5 0 0 1 12.75 22C6.95 22 2.25 17.3 2.25 11.5c0-4.37 2.67-8.11 6.46-9.69a.75.75 0 0 1 .82.16Z"/></svg>
-      <svg class="theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Zm0-5.25a1 1 0 0 1 1 1V5.5a1 1 0 1 1-2 0V3.25a1 1 0 0 1 1-1Zm0 15.5a1 1 0 0 1 1 1v2.25a1 1 0 1 1-2 0V18.75a1 1 0 0 1 1-1ZM3.25 12a1 1 0 0 1 1-1H6.5a1 1 0 1 1 0 2H4.25a1 1 0 0 1-1-1Zm15.5 0a1 1 0 0 1 1-1h2.25a1 1 0 1 1 0 2H19.75a1 1 0 0 1-1-1ZM5.64 5.64a1 1 0 0 1 1.41 0l1.6 1.6a1 1 0 0 1-1.42 1.41l-1.59-1.59a1 1 0 0 1 0-1.42Zm9.9 9.9a1 1 0 0 1 1.42 0l1.59 1.6a1 1 0 0 1-1.41 1.41l-1.6-1.59a1 1 0 0 1 0-1.42ZM18.36 5.64a1 1 0 0 1 0 1.41l-1.6 1.6a1 1 0 1 1-1.41-1.42l1.59-1.59a1 1 0 0 1 1.42 0ZM8.46 15.54a1 1 0 0 1 0 1.42l-1.6 1.59a1 1 0 0 1-1.41-1.41l1.59-1.6a1 1 0 0 1 1.42 0Z"/></svg>
-    </button>
     <button class="site-nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav-menu">
       <span class="visually-hidden">開啟選單</span>
       <span class="site-nav-burger" aria-hidden="true"></span>
