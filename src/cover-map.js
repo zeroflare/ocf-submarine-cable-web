@@ -4,8 +4,10 @@ function mapStyleUrl() {
   return STYLE_DARK;
 }
 
-const CABLE_COLOR = '#7ebfd4';
-const GOLD_CABLE = '#e8b84a';
+const CABLE_COLOR = '#66dff1';
+const GOLD_CABLE = '#f4c96c';
+const DOMESTIC_CABLE = '#54e3c2';
+const OVERSEAS_CABLE = '#8aa7ff';
 const DEFAULT = { lng: 125.57498, lat: 23.70176, z: 6 };
 
 function coverCableColor() {
@@ -31,7 +33,7 @@ function restyleBaseMap(map) {
         map.setLayoutProperty(id, 'visibility', 'none');
       }
     }
-    const oceanOnly = ['all', ['==', '$type', 'Polygon'], ['!', ['in', 'class', ...inlandWater]]];
+    const oceanOnly = ['all', ['==', '$type', 'Polygon'], ['!in', 'class', ...inlandWater]];
     if (map.getLayer('water')) map.setFilter('water', oceanOnly);
     if (map.getLayer('water_shadow')) map.setFilter('water_shadow', oceanOnly);
   } catch {
@@ -145,37 +147,23 @@ function stripMapParams() {
   history.replaceState(null, '', url);
 }
 
-function mountTools(cover) {
-  if (cover.querySelector('.cover-map-tools')) return;
-  const tools = document.createElement('div');
-  tools.className = 'cover-map-tools';
-  tools.innerHTML = `
-    <div class="cover-map-zoom">
-      <button type="button" id="cover-zoom-in" aria-label="放大">+</button>
-      <button type="button" id="cover-zoom-out" aria-label="縮小">−</button>
-    </div>
-  `;
-  cover.appendChild(tools);
-}
-
 function initCoverMap() {
   const container = document.getElementById('cover-map');
   const cover = document.getElementById('cover');
   if (!container || !cover || container.querySelector('.maplibregl-canvas')) return;
 
   stripMapParams();
-  mountTools(cover);
-
   const map = new maplibregl.Map({
     container,
     style: mapStyleUrl(),
     center: [DEFAULT.lng, DEFAULT.lat],
     zoom: DEFAULT.z,
-    interactive: true,
+    interactive: false,
+    dragPan: false,
     dragRotate: false,
     touchPitch: false,
     scrollZoom: false,
-    doubleClickZoom: true,
+    doubleClickZoom: false,
     attributionControl: false,
     fadeDuration: 0,
   });
@@ -187,13 +175,6 @@ function initCoverMap() {
   };
 
   map.on('load', paint);
-
-  document.getElementById('cover-zoom-in')?.addEventListener('click', () => {
-    map.zoomIn({ duration: 0 });
-  });
-  document.getElementById('cover-zoom-out')?.addEventListener('click', () => {
-    map.zoomOut({ duration: 0 });
-  });
 
   window.addEventListener('resize', () => map.resize());
 }
@@ -225,12 +206,71 @@ const LANDING_EXITS = {
   dawu: { via: [[121.18, 22.48], [123.45, 21.15]], out: [125.9, 19.7] },
 };
 
+const DOMESTIC_DESTINATIONS = new Set(['kinmen', 'matsu']);
+const TAIWAN_ROUTE_ORIGIN = [120.97, 23.72];
+const OUTBOUND_ROUTE_CURVES = {
+  singapore: -0.08,
+  hongkong: 0.12,
+  manila: 0.1,
+  tokyo: -0.08,
+  guam: 0.08,
+  losangeles: 0.05,
+  kinmen: 0.16,
+  matsu: -0.16,
+  sanchong: -0.03,
+  shanghai: 0.1,
+};
+
+function setSvgPathProgress(path, progress, reverse = false) {
+  const fullPath = path.dataset.fullPath;
+  if (!fullPath) return;
+  path.setAttribute('d', fullPath);
+  path.style.visibility = progress <= 0.001 ? 'hidden' : 'visible';
+  if (progress <= 0.001 || progress >= 0.999) return;
+
+  const length = path.getTotalLength();
+  const visibleLength = length * progress;
+  const steps = Math.max(8, Math.ceil(48 * progress));
+  const points = Array.from({ length: steps + 1 }, (_, index) => {
+    const visibleProgress = visibleLength * (index / steps);
+    return path.getPointAtLength(reverse ? length - visibleProgress : visibleProgress);
+  });
+  path.setAttribute(
+    'd',
+    points
+      .map((point, index) => `${index ? 'L' : 'M'}${point.x.toFixed(1)},${point.y.toFixed(1)}`)
+      .join(' '),
+  );
+}
+
+function viewportEdgePoint(start, target, width, height) {
+  const dx = target.x - start.x;
+  const dy = target.y - start.y;
+  const candidates = [];
+  if (dx > 0) candidates.push((width - start.x) / dx);
+  if (dx < 0) candidates.push((0 - start.x) / dx);
+  if (dy > 0) candidates.push((height - start.y) / dy);
+  if (dy < 0) candidates.push((0 - start.y) / dy);
+  const progress = Math.min(...candidates.filter((value) => value > 0));
+  return {
+    x: start.x + dx * progress,
+    y: start.y + dy * progress,
+  };
+}
+
 function addLandingRoutes(map, sites) {
   const wrap = map.getContainer();
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'landing-routes-svg');
   svg.setAttribute('aria-hidden', 'true');
   wrap.appendChild(svg);
+  let progress = 0;
+
+  const applyProgress = () => {
+    for (const path of svg.querySelectorAll('.landing-route-path')) {
+      setSvgPathProgress(path, progress, true);
+    }
+  };
 
   const draw = () => {
     const w = wrap.clientWidth;
@@ -241,7 +281,7 @@ function addLandingRoutes(map, sites) {
     svg.setAttribute('width', String(w));
     svg.setAttribute('height', String(h));
 
-    const pins = [...wrap.querySelectorAll('.land-pin')];
+    const pins = [...wrap.querySelectorAll('.network-landing-pin')];
     const grads = [];
     const paths = [];
     for (const site of sites) {
@@ -255,41 +295,177 @@ function addLandingRoutes(map, sites) {
       };
       const exit = LANDING_EXITS[site.id];
       if (!exit) continue;
-      const c1 = map.project(exit.via[0]);
-      const c2 = map.project(exit.via[1]);
-      const end = map.project(exit.out);
+      const projectedC1 = map.project(exit.via[0]);
+      const target = map.project(exit.out);
+      const end = viewportEdgePoint(start, target, w, h);
+      const c1 = {
+        x: Math.max(0, Math.min(w, projectedC1.x)),
+        y: Math.max(0, Math.min(h, projectedC1.y)),
+      };
+      const c2 = {
+        x: c1.x + (end.x - c1.x) * 0.68,
+        y: c1.y + (end.y - c1.y) * 0.68,
+      };
       const gid = `${wrap.id}-route-${site.id}`;
       grads.push(
-        `<linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}">` +
-          `<stop offset="0%" stop-color="#e8b84a" stop-opacity="1"/>` +
-          `<stop offset="62%" stop-color="#e8b84a" stop-opacity="0.55"/>` +
-          `<stop offset="100%" stop-color="#e8b84a" stop-opacity="0"/>` +
+        `<linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="${end.x}" y1="${end.y}" x2="${start.x}" y2="${start.y}">` +
+          `<stop offset="0%" stop-color="${GOLD_CABLE}" stop-opacity="0.18"/>` +
+          `<stop offset="46%" stop-color="${GOLD_CABLE}" stop-opacity="0.62"/>` +
+          `<stop offset="100%" stop-color="${GOLD_CABLE}" stop-opacity="1"/>` +
           `</linearGradient>`,
       );
       const d = `M${start.x.toFixed(1)},${start.y.toFixed(1)} C${c1.x.toFixed(1)},${c1.y.toFixed(1)} ${c2.x.toFixed(1)},${c2.y.toFixed(1)} ${end.x.toFixed(1)},${end.y.toFixed(1)}`;
       paths.push(
-        `<path d="${d}" fill="none" stroke="#e8b84a" stroke-width="6" stroke-linecap="round" opacity="0.18" filter="url(#${wrap.id}-blur)"></path>` +
-          `<path d="${d}" fill="none" stroke="url(#${gid})" stroke-width="2.6" stroke-linecap="round"></path>`,
+        `<path class="landing-route-path" data-full-path="${d}" d="${d}" fill="none" stroke="${GOLD_CABLE}" stroke-width="6" stroke-linecap="round" opacity="0.18" filter="url(#${wrap.id}-blur)"></path>` +
+          `<path class="landing-route-path" data-full-path="${d}" d="${d}" fill="none" stroke="url(#${gid})" stroke-width="2.6" stroke-linecap="round"></path>`,
       );
     }
     svg.innerHTML =
       `<defs><filter id="${wrap.id}-blur"><feGaussianBlur stdDeviation="1.6"/></filter>${grads.join('')}</defs>${paths.join('')}`;
+    applyProgress();
   };
 
   map.on('move', draw);
   map.on('resize', draw);
   requestAnimationFrame(draw);
+  return {
+    svg,
+    draw,
+    setProgress(nextProgress) {
+      progress = clamp01(nextProgress);
+      applyProgress();
+    },
+  };
+}
+
+function addOutboundRoutes(map, destinations) {
+  const wrap = map.getContainer();
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'landing-routes-svg outbound-routes-svg');
+  svg.setAttribute('aria-hidden', 'true');
+  wrap.appendChild(svg);
+  let domesticProgress = 0;
+  let overseasProgress = 0;
+  let drawRaf = 0;
+
+  const applyProgress = () => {
+    for (const path of svg.querySelectorAll('.outbound-route-path')) {
+      const progress = path.dataset.routeType === 'domestic'
+        ? domesticProgress
+        : overseasProgress;
+      setSvgPathProgress(path, progress);
+    }
+  };
+
+  const dotCenter = (siteId, origin) => {
+    const dot = wrap.querySelector(
+      `.network-destination-pin[data-site-id="${siteId}"] .land-pin-dot`,
+    );
+    if (!dot) return null;
+    const box = dot.getBoundingClientRect();
+    return {
+      x: box.left + box.width / 2 - origin.left,
+      y: box.top + box.height / 2 - origin.top,
+    };
+  };
+
+  const visualTaiwanCenter = (origin) => {
+    const centers = [...wrap.querySelectorAll('.network-landing-pin .land-pin-dot')]
+      .map((dot) => {
+        const box = dot.getBoundingClientRect();
+        return {
+          x: box.left + box.width / 2 - origin.left,
+          y: box.top + box.height / 2 - origin.top,
+        };
+      });
+
+    if (!centers.length) return map.project(TAIWAN_ROUTE_ORIGIN);
+
+    const xs = centers.map(({ x }) => x);
+    const ys = centers.map(({ y }) => y);
+    return {
+      x: (Math.min(...xs) + Math.max(...xs)) / 2,
+      y: (Math.min(...ys) + Math.max(...ys)) / 2,
+    };
+  };
+
+  const draw = () => {
+    const width = wrap.clientWidth;
+    const height = wrap.clientHeight;
+    if (!width || !height) return;
+    const origin = wrap.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('width', String(width));
+    svg.setAttribute('height', String(height));
+
+    const paths = [];
+    const start = visualTaiwanCenter(origin);
+    for (const site of destinations) {
+      const curve = OUTBOUND_ROUTE_CURVES[site.id] ?? 0;
+      const end = dotCenter(site.id, origin);
+      if (!start || !end) continue;
+
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      const distance = Math.hypot(dx, dy) || 1;
+      const normal = { x: -dy / distance, y: dx / distance };
+      const bend = distance * curve;
+      const c1 = {
+        x: start.x + dx * 0.34 + normal.x * bend,
+        y: start.y + dy * 0.34 + normal.y * bend,
+      };
+      const c2 = {
+        x: start.x + dx * 0.72 + normal.x * bend,
+        y: start.y + dy * 0.72 + normal.y * bend,
+      };
+      const d = `M${start.x.toFixed(1)},${start.y.toFixed(1)} C${c1.x.toFixed(1)},${c1.y.toFixed(1)} ${c2.x.toFixed(1)},${c2.y.toFixed(1)} ${end.x.toFixed(1)},${end.y.toFixed(1)}`;
+      const routeType = DOMESTIC_DESTINATIONS.has(site.id) ? 'domestic' : 'overseas';
+      const color = routeType === 'domestic' ? DOMESTIC_CABLE : OVERSEAS_CABLE;
+      paths.push(
+        `<path class="outbound-route-path outbound-route-path--glow" data-route-type="${routeType}" data-full-path="${d}" d="${d}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" opacity="0.24" filter="url(#${wrap.id}-outbound-blur)"></path>` +
+          `<path class="outbound-route-path" data-route-type="${routeType}" data-full-path="${d}" d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round"></path>`,
+      );
+    }
+    svg.innerHTML =
+      `<defs><filter id="${wrap.id}-outbound-blur"><feGaussianBlur stdDeviation="2.2"/></filter></defs>${paths.join('')}`;
+    applyProgress();
+  };
+
+  const requestDraw = () => {
+    if (drawRaf) return;
+    drawRaf = requestAnimationFrame(() => {
+      drawRaf = 0;
+      draw();
+    });
+  };
+
+  map.on('move', requestDraw);
+  map.on('resize', requestDraw);
+  requestDraw();
+  return {
+    svg,
+    draw,
+    setProgress(nextDomesticProgress, nextOverseasProgress) {
+      domesticProgress = clamp01(nextDomesticProgress);
+      overseasProgress = clamp01(nextOverseasProgress);
+      applyProgress();
+    },
+  };
 }
 
 function addLandingPins(map, sites, className = 'land-pin') {
+  const elements = [];
   for (const site of sites) {
     const el = document.createElement('div');
     el.className = `${className} land-pin--${site.anchor}`;
+    el.dataset.siteId = site.id;
     el.innerHTML = `<span class="land-pin-dot"></span><span class="land-pin-label">${site.name}</span>`;
     new maplibregl.Marker({ element: el, anchor: 'center', draggable: false })
       .setLngLat([site.lng, site.lat])
       .addTo(map);
+    elements.push(el);
   }
+  return elements;
 }
 
 async function loadDestinations() {
@@ -330,15 +506,20 @@ async function saveDestinations(sites) {
 }
 
 function addDestinationPins(map, sites, { editable = false, hint } = {}) {
+  const elements = [];
   for (const site of sites) {
     const el = document.createElement('div');
-    el.className = `land-pin dest-pin land-pin--${site.anchor}`;
+    const routeType = DOMESTIC_DESTINATIONS.has(site.id) ? 'domestic' : 'overseas';
+    el.className = `land-pin dest-pin network-destination-pin network-destination-pin--${routeType} land-pin--${site.anchor}`;
+    el.dataset.siteId = site.id;
     el.innerHTML = `<span class="land-pin-dot"></span><span class="land-pin-label">${site.name}</span>`;
     const marker = new maplibregl.Marker({ element: el, anchor: 'center', draggable: false })
       .setLngLat([site.lng, site.lat])
       .addTo(map);
     if (editable) enableDestPinDrag(map, marker, site, sites, hint);
+    elements.push(el);
   }
+  return elements;
 }
 
 function enableDestPinDrag(map, marker, site, sites, hint) {
@@ -410,80 +591,79 @@ async function loadTaiwanView() {
   }
 }
 
-function applyTaiwanView(map, view) {
-  if (view) {
-    map.jumpTo({ center: [view.lng, view.lat], zoom: view.zoom, bearing: 0, pitch: 0 });
-    return;
-  }
-  fitLandingMap(map);
+function clamp01(value) {
+  return Math.min(1, Math.max(0, value));
 }
 
-async function saveTaiwanView(map) {
-  const center = map.getCenter();
-  return postConfig('/__save-taiwan-view', {
-    lng: Number(center.lng.toFixed(5)),
-    lat: Number(center.lat.toFixed(5)),
-    zoom: Number(map.getZoom().toFixed(3)),
-  });
+function rangeProgress(value, start, end) {
+  return clamp01((value - start) / (end - start));
 }
 
-function mountTaiwanEditTools(scene, map) {
-  const stage = scene.querySelector('.tw-stage');
-  if (!stage || stage.querySelector('.taiwan-map-tools')) return;
+function smoothstep(value) {
+  const t = clamp01(value);
+  return t * t * (3 - 2 * t);
+}
 
-  const tools = document.createElement('div');
-  tools.className = 'taiwan-map-tools';
-  tools.innerHTML = `
-    <p class="taiwan-view-hint">開發模式：拖曳城市點寫入 destinations.json</p>
-    <div class="cover-map-zoom">
-      <button type="button" data-taiwan-zoom="in" aria-label="放大">+</button>
-      <button type="button" data-taiwan-zoom="out" aria-label="縮小">−</button>
-    </div>`;
-  stage.appendChild(tools);
+function mix(from, to, progress) {
+  return from + (to - from) * progress;
+}
 
-  const hint = tools.querySelector('.taiwan-view-hint');
-  tools.querySelector('[data-taiwan-zoom="in"]')?.addEventListener('click', () => {
-    map.zoomIn({ duration: 0 });
-  });
-  tools.querySelector('[data-taiwan-zoom="out"]')?.addEventListener('click', () => {
-    map.zoomOut({ duration: 0 });
-  });
-
-  let ready = false;
-  let timer = 0;
-  const persist = () => {
-    if (!ready) return;
-    clearTimeout(timer);
-    timer = setTimeout(async () => {
-      try {
-        const view = await saveTaiwanView(map);
-        hint.textContent = `已存 ${view.lng}, ${view.lat} · z${view.zoom}`;
-        hint.dataset.state = 'saved';
-      } catch (err) {
-        hint.textContent = `存檔失敗：${err instanceof Error ? err.message : '未知錯誤'}`;
-        hint.dataset.state = 'error';
-      }
-    }, 220);
+function landingCameraFor(map) {
+  const mobile = window.matchMedia('(max-width: 800px)').matches;
+  const padding = mobile
+    ? { top: 64, bottom: 360, left: 20, right: 20 }
+    : { top: 80, bottom: 72, left: 460, right: 88 };
+  const camera = map.cameraForBounds(
+    [
+      [119.95, 21.88],
+      [122.08, 25.38],
+    ],
+    { padding, maxZoom: 8.2 },
+  );
+  return {
+    lng: camera?.center.lng ?? 121.05,
+    lat: camera?.center.lat ?? 23.72,
+    zoom: camera?.zoom ?? 7,
   };
-
-  map.on('moveend', persist);
-  setTimeout(() => {
-    ready = true;
-  }, 500);
 }
 
-async function initPaleTaiwanMap(containerId, sceneId, { routes = true, cables = false, savedView = false, pins = true, destinations = false } = {}) {
-  const container = document.getElementById(containerId);
-  const scene = document.getElementById(sceneId);
+function globalCameraFor(view) {
+  const mobile = window.matchMedia('(max-width: 800px)').matches;
+  if (mobile) {
+    return {
+      lng: 129,
+      lat: 22.5,
+      zoom: Math.min(view?.zoom ?? 3.5, 1.9),
+    };
+  }
+  const viewportZoom = mix(3.15, 3.5, clamp01((window.innerHeight - 720) / 330));
+  return {
+    lng: view?.lng ?? 119.05946,
+    lat: view?.lat ?? 21.64738,
+    zoom: Math.min(view?.zoom ?? 3.5, viewportZoom),
+  };
+}
+
+function setPanelState(panel, opacity, shift) {
+  if (!panel) return;
+  panel.style.opacity = opacity.toFixed(3);
+  panel.style.setProperty('--network-shift', `${shift.toFixed(1)}px`);
+  panel.style.pointerEvents = opacity > 0.55 ? 'auto' : 'none';
+  panel.setAttribute('aria-hidden', String(opacity < 0.08));
+}
+
+async function initNetworkStoryMap() {
+  const container = document.getElementById('network-map');
+  const scene = document.getElementById('landing');
   if (!container || !scene || container.querySelector('.maplibregl-canvas')) return;
 
-  const view = savedView ? await loadTaiwanView() : null;
-  const editView = savedView && isLocalDev();
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const globalView = await loadTaiwanView();
   const map = new maplibregl.Map({
     container,
     style: mapStyleUrl(),
-    center: view ? [view.lng, view.lat] : [121.05, 23.72],
-    zoom: view ? view.zoom : 7,
+    center: [121.05, 23.72],
+    zoom: 7,
     interactive: false,
     dragPan: false,
     dragRotate: false,
@@ -495,52 +675,120 @@ async function initPaleTaiwanMap(containerId, sceneId, { routes = true, cables =
     fadeDuration: 0,
   });
 
-  const paint = async ({ first = false } = {}) => {
+  map.on('load', async () => {
     restyleBaseMap(map);
-    if (cables) await addCables(map, { breathe: true, root: scene, color: GOLD_CABLE });
-    if (first && (pins || routes)) {
-      const sites = await loadLandings();
-      if (pins) addLandingPins(map, sites);
-      if (routes) addLandingRoutes(map, sites);
-    }
-    if (first && editView) mountTaiwanEditTools(scene, map);
-    if (first && destinations) {
-      addDestinationPins(map, await loadDestinations(), {
-        editable: editView,
-        hint: scene.querySelector('.taiwan-view-hint'),
+    const [landings, destinations] = await Promise.all([loadLandings(), loadDestinations()]);
+    addLandingPins(map, landings, 'land-pin network-landing-pin');
+    const landingRoutes = addLandingRoutes(map, landings);
+    addDestinationPins(map, destinations);
+    const outboundRoutes = addOutboundRoutes(map, destinations);
+    const landingPanel = scene.querySelector('[data-network-panel="landing"]');
+    const globalPanel = scene.querySelector('[data-network-panel="global"]');
+    let landingCamera;
+    let globalCamera;
+    let raf = 0;
+
+    const updateCameras = () => {
+      map.resize();
+      landingCamera = landingCameraFor(map);
+      globalCamera = globalCameraFor(globalView);
+    };
+
+    const scrollProgress = () => {
+      const rect = scene.getBoundingClientRect();
+      const travel = Math.max(1, scene.offsetHeight - window.innerHeight);
+      return clamp01(-rect.top / travel);
+    };
+
+    const render = () => {
+      raf = 0;
+      if (!landingCamera || !globalCamera) return;
+      const progress = scrollProgress();
+      const incomingProgress = reduceMotion.matches
+        ? 1
+        : smoothstep(rangeProgress(progress, 0.02, 0.3));
+      const cameraProgress = reduceMotion.matches
+        ? Number(progress >= 0.56)
+        : smoothstep(rangeProgress(progress, 0.3, 0.54));
+      const routeProgress = reduceMotion.matches
+        ? Number(progress >= 0.56)
+        : smoothstep(rangeProgress(progress, 0.42, 0.56));
+      const domesticRouteProgress = reduceMotion.matches
+        ? Number(progress >= 0.56)
+        : smoothstep(rangeProgress(progress, 0.56, 0.78));
+      const overseasRouteProgress = reduceMotion.matches
+        ? Number(progress >= 0.56)
+        : smoothstep(rangeProgress(progress, 0.62, 0.94));
+      const landingPinProgress = reduceMotion.matches
+        ? Number(progress >= 0.56)
+        : smoothstep(rangeProgress(progress, 0.42, 0.56));
+      const destinationPinProgress = reduceMotion.matches
+        ? Number(progress >= 0.56)
+        : smoothstep(rangeProgress(progress, 0.5, 0.56));
+      const landingPanelProgress = reduceMotion.matches
+        ? Number(progress >= 0.56)
+        : smoothstep(rangeProgress(progress, 0.43, 0.55));
+      const globalPanelProgress = reduceMotion.matches
+        ? Number(progress >= 0.56)
+        : smoothstep(rangeProgress(progress, 0.52, 0.66));
+
+      map.jumpTo({
+        center: [
+          mix(landingCamera.lng, globalCamera.lng, cameraProgress),
+          mix(landingCamera.lat, globalCamera.lat, cameraProgress),
+        ],
+        zoom: mix(landingCamera.zoom, globalCamera.zoom, cameraProgress),
+        bearing: 0,
+        pitch: 0,
       });
+
+      landingRoutes.svg.style.opacity = (1 - routeProgress).toFixed(3);
+      landingRoutes.setProgress(incomingProgress);
+      scene.style.setProperty('--landing-pin-opacity', (1 - landingPinProgress).toFixed(3));
+      scene.style.setProperty('--domestic-pin-opacity', destinationPinProgress.toFixed(3));
+      scene.style.setProperty('--overseas-pin-opacity', destinationPinProgress.toFixed(3));
+      outboundRoutes.setProgress(domesticRouteProgress, overseasRouteProgress);
+
+      setPanelState(landingPanel, 1 - landingPanelProgress, -12 * landingPanelProgress);
+      setPanelState(globalPanel, globalPanelProgress, 14 * (1 - globalPanelProgress));
+      scene.dataset.networkProgress = progress.toFixed(3);
+      scene.dataset.incomingProgress = incomingProgress.toFixed(3);
+      scene.dataset.destinationProgress = destinationPinProgress.toFixed(3);
+      scene.dataset.domesticProgress = domesticRouteProgress.toFixed(3);
+      scene.dataset.overseasProgress = overseasRouteProgress.toFixed(3);
+    };
+
+    const requestRender = () => {
+      if (!raf) raf = requestAnimationFrame(render);
+    };
+
+    updateCameras();
+    render();
+
+    window.addEventListener('scroll', requestRender, { passive: true });
+    window.addEventListener('resize', () => {
+      updateCameras();
+      requestRender();
+    });
+    reduceMotion.addEventListener?.('change', requestRender);
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        updateCameras();
+        requestRender();
+      }, { threshold: 0.02 });
+      observer.observe(scene);
     }
-    if (savedView) applyTaiwanView(map, view);
-    else fitLandingMap(map);
-    map.resize();
-  };
-
-  map.on('load', () => paint({ first: true }));
-
-  window.addEventListener('resize', () => {
-    map.resize();
-    if (!savedView) fitLandingMap(map);
   });
-
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        map.resize();
-        if (!savedView) fitLandingMap(map);
-      }
-    }, { threshold: 0.12 });
-    io.observe(scene);
-  }
 }
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initCoverMap();
-    initPaleTaiwanMap('landing-map', 'landing');
-    initPaleTaiwanMap('taiwan-map', 'taiwan', { routes: false, cables: true, savedView: true, pins: false, destinations: true });
+    initNetworkStoryMap();
   });
 } else {
   initCoverMap();
-  initPaleTaiwanMap('landing-map', 'landing');
-  initPaleTaiwanMap('taiwan-map', 'taiwan', { routes: false, cables: true, savedView: true, pins: false, destinations: true });
+  initNetworkStoryMap();
 }

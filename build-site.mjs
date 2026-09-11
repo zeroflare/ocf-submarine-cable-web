@@ -154,15 +154,6 @@ function renderArticleScenes(articles) {
     .join('');
 }
 
-function renderArticleDots(articles) {
-  return articles
-    .map((article, index) => {
-      const sceneId = index === 0 ? 'articles' : `article-${padOrder(article.order)}`;
-      const label = escapeHtml(article.subtitle || article.title);
-      return `<button type="button" data-target="${sceneId}" aria-label="${label}"><span class="nav-dot"></span><span class="nav-label">${label}</span></button>`;
-    })
-    .join('');
-}
 function embedFlourish(html) {
   return html.replace(
     /<div class="(flourish-embed[^"]*)" data-src="([^"]+)">[\s\S]*?<\/div>/g,
@@ -220,11 +211,6 @@ function injectHomeArticles(html, articles) {
   if (next === html) {
     throw new Error('homepage article-scenes marker missing');
   }
-  const withDots = next.replace('<!--article-dots-->', renderArticleDots(articles));
-  if (withDots === next) {
-    throw new Error('homepage article-dots marker missing');
-  }
-  next = withDots;
   const withTemplates = next.replace(
     /<div id="article-templates"[^>]*>[\s\S]*?<\/div>/,
     `<div id="article-templates" hidden>${renderArticleTemplates(articles)}</div>`,

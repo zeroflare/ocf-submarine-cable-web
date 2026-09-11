@@ -3,6 +3,7 @@ function initNav() {
   const btn = nav?.querySelector('.site-nav-toggle');
   const label = btn?.querySelector('.visually-hidden');
   if (!nav || !btn) return;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const setOpen = (open) => {
     nav.classList.toggle('is-open', open);
@@ -14,45 +15,24 @@ function initNav() {
   nav.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', () => setOpen(false));
   });
+
+  nav.querySelectorAll('.site-nav-links a[href*="#"]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      const url = new URL(link.href, location.href);
+      const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+      if (!target || url.pathname !== location.pathname) return;
+
+      event.preventDefault();
+      history.pushState(null, '', url.hash);
+      target.scrollIntoView({
+        behavior: reduceMotion.matches ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+  });
 }
 
 function syncChrome() {
-  const sections = [...document.querySelectorAll('.scene[data-scene]')];
-  const cover = document.getElementById('cover');
-  const end = document.getElementById('portals');
-  const onCover = cover ? cover.getBoundingClientRect().bottom > window.innerHeight * 0.55 : false;
-  const pastStory = end ? end.getBoundingClientRect().top < window.innerHeight * 0.85 : false;
-  const dots = document.querySelector('.nav-dots');
-  const index = document.querySelector('.scene-index');
-  const showStoryChrome = !onCover && !pastStory;
-  dots?.classList.toggle('is-visible', showStoryChrome);
-  index?.classList.toggle('is-visible', showStoryChrome);
-
-  let activeId = null;
-  let best = -1;
-  for (const section of sections) {
-    const rect = section.getBoundingClientRect();
-    const visible =
-      Math.min(window.innerHeight, Math.max(0, window.innerHeight - rect.top)) -
-      Math.max(0, window.innerHeight - rect.bottom);
-    if (visible > best && rect.top < window.innerHeight && rect.bottom > 0) {
-      best = visible;
-      activeId = section.dataset.scene ?? null;
-    }
-  }
-  if (pastStory) activeId = null;
-
-  document.querySelectorAll('.nav-dots [data-target]').forEach((btn, i) => {
-    const on = btn.dataset.target === activeId;
-    btn.classList.toggle('on', on);
-    if (on) {
-      const numEl = document.querySelector('[data-scene-index]');
-      const nameEl = document.querySelector('[data-scene-name]');
-      if (numEl) numEl.textContent = String(i + 1).padStart(2, '0');
-      if (nameEl) nameEl.textContent = btn.querySelector('.nav-label')?.textContent ?? '';
-    }
-  });
-
   const articles = document.getElementById('articles');
   const portals = document.getElementById('portals');
   let navKey = 'intro';
@@ -69,12 +49,6 @@ function syncChrome() {
 function initScrollStory() {
   if (!document.querySelector('.scene[data-scene]')) return;
 
-  document.querySelectorAll('.nav-dots [data-target]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.getElementById(btn.dataset.target ?? '')?.scrollIntoView({ behavior: 'auto' });
-    });
-  });
-
   window.addEventListener('scroll', syncChrome, { passive: true });
   window.addEventListener('resize', syncChrome);
   syncChrome();
@@ -82,7 +56,7 @@ function initScrollStory() {
 
 function initReducedMotion() {
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  document.querySelectorAll('#sea animate, #sea animateTransform').forEach((el) => el.remove());
+  document.querySelectorAll('#sea animate, #sea animateMotion, #sea animateTransform').forEach((el) => el.remove());
 }
 
 function articleSlugFromHref(href) {
