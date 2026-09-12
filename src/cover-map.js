@@ -9,12 +9,14 @@ const GOLD_CABLE = '#f4c96c';
 const DOMESTIC_CABLE = '#54e3c2';
 const OVERSEAS_CABLE = '#8aa7ff';
 const DEFAULT = { lng: 125.57498, lat: 23.70176, z: 6 };
+const COVER_TAIWAN_LEFT_EDGE = [119.95, 23.72];
+const COVER_TAIWAN_MIN_X = 24;
 
 function coverCableColor() {
   return CABLE_COLOR;
 }
 
-function restyleBaseMap(map) {
+function restyleBaseMap(map, { useSitePalette = false } = {}) {
   try {
     const inlandWater = ['lake', 'pond', 'reservoir', 'basin', 'river', 'canal', 'ditch', 'stream', 'drain', 'swamp', 'wetland'];
     for (const layer of map.getStyle().layers ?? []) {
@@ -36,6 +38,33 @@ function restyleBaseMap(map) {
     const oceanOnly = ['all', ['==', '$type', 'Polygon'], ['!in', 'class', ...inlandWater]];
     if (map.getLayer('water')) map.setFilter('water', oceanOnly);
     if (map.getLayer('water_shadow')) map.setFilter('water_shadow', oceanOnly);
+
+    if (useSitePalette) {
+      const rootStyle = getComputedStyle(document.documentElement);
+      const color = (token, fallback) => rootStyle.getPropertyValue(token).trim() || fallback;
+      const palette = {
+        ocean: color('--bg-cover', '#04132b'),
+        land: color('--illus-sea-1', '#12658c'),
+        landDetail: color('--illus-sky-1', '#0b3b69'),
+        coast: color('--illus-glow', '#2d93b5'),
+        boundary: color('--text-dim', '#78a7bf'),
+      };
+      const setPaint = (id, property, value) => {
+        if (map.getLayer(id)) map.setPaintProperty(id, property, value);
+      };
+
+      setPaint('background', 'background-color', palette.land);
+      setPaint('water', 'fill-color', palette.ocean);
+      for (const id of ['landcover', 'park_national_park', 'park_nature_reserve', 'landuse']) {
+        setPaint(id, 'fill-color', palette.land);
+      }
+      setPaint('landuse_residential', 'fill-color', palette.landDetail);
+      setPaint('landuse_residential', 'fill-opacity', 0.62);
+      setPaint('boundary_country_outline', 'line-color', palette.coast);
+      setPaint('boundary_country_outline', 'line-opacity', 0.68);
+      setPaint('boundary_country_inner', 'line-color', palette.boundary);
+      setPaint('boundary_country_inner', 'line-opacity', 0.38);
+    }
   } catch {
     /* Positron / Dark Matter 圖層名稱不完全相同 */
   }
@@ -147,6 +176,18 @@ function stripMapParams() {
   history.replaceState(null, '', url);
 }
 
+function positionCoverMap(map) {
+  map.jumpTo({ center: [DEFAULT.lng, DEFAULT.lat], zoom: DEFAULT.z });
+
+  const taiwanLeft = map.project(COVER_TAIWAN_LEFT_EDGE);
+  if (taiwanLeft.x >= COVER_TAIWAN_MIN_X) return;
+
+  const shift = COVER_TAIWAN_MIN_X - taiwanLeft.x;
+  const centerPoint = map.project(map.getCenter());
+  const anchoredCenter = map.unproject([centerPoint.x - shift, centerPoint.y]);
+  map.jumpTo({ center: anchoredCenter, zoom: DEFAULT.z });
+}
+
 function initCoverMap() {
   const container = document.getElementById('cover-map');
   const cover = document.getElementById('cover');
@@ -172,11 +213,19 @@ function initCoverMap() {
     restyleBaseMap(map);
     await addCables(map, { color: coverCableColor() });
     map.resize();
+    positionCoverMap(map);
   };
 
   map.on('load', paint);
 
-  window.addEventListener('resize', () => map.resize());
+  let resizeRaf = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      map.resize();
+      positionCoverMap(map);
+    });
+  });
 }
 
 async function loadLandings() {
@@ -208,18 +257,17 @@ const LANDING_EXITS = {
 
 const DOMESTIC_DESTINATIONS = new Set(['kinmen', 'matsu']);
 const TAIWAN_ROUTE_ORIGIN = [120.97, 23.72];
-const OUTBOUND_ROUTE_CURVES = {
-  singapore: -0.08,
-  hongkong: 0.12,
-  manila: 0.1,
-  tokyo: -0.08,
-  guam: 0.08,
-  losangeles: 0.05,
-  kinmen: 0.16,
-  matsu: -0.16,
-  sanchong: -0.03,
-  shanghai: 0.1,
-};
+const NETWORK_WRAP_CENTER = 170;
+const DOMESTIC_CABLE_SYSTEMS = new Set([
+  'tpkm3',
+  'twpk1',
+  'twpk3',
+  'twtk2',
+  'twtm2',
+  'twtm3',
+  'twtp2',
+  'twtp3',
+]);
 
 function setSvgPathProgress(path, progress, reverse = false) {
   const fullPath = path.dataset.fullPath;
@@ -338,12 +386,119 @@ function addLandingRoutes(map, sites) {
   };
 }
 
-function addOutboundRoutes(map, destinations) {
+function wrapLongitude(lng, center = NETWORK_WRAP_CENTER) {
+  let wrapped = Number(lng);
+  while (wrapped - center > 180) wrapped -= 360;
+  while (wrapped - center < -180) wrapped += 360;
+  return wrapped;
+}
+
+function routeDistance([lng, lat]) {
+  const lngDelta = wrapLongitude(lng, TAIWAN_ROUTE_ORIGIN[0]) - TAIWAN_ROUTE_ORIGIN[0];
+  const latDelta = lat - TAIWAN_ROUTE_ORIGIN[1];
+  return Math.hypot(lngDelta * Math.cos((lat * Math.PI) / 180), latDelta);
+}
+
+function cableSegmentLength(coordinates) {
+  let length = 0;
+  for (let index = 1; index < coordinates.length; index += 1) {
+    const [previousLng, previousLat] = coordinates[index - 1];
+    const [lng, lat] = coordinates[index];
+    const wrappedLng = wrapLongitude(lng, previousLng);
+    const lngDelta = (wrappedLng - previousLng) * Math.cos((((lat + previousLat) / 2) * Math.PI) / 180);
+    length += Math.hypot(lngDelta, lat - previousLat);
+  }
+  return length;
+}
+
+function prepareCableRoutes(cableData) {
+  const routes = (cableData.features ?? [])
+    .filter((feature) => feature.geometry?.type === 'LineString')
+    .map((feature) => {
+      const coordinates = [...feature.geometry.coordinates];
+      const cable = feature.properties?.cable ?? feature.properties?.name ?? feature.properties?.id;
+      return {
+        coordinates,
+        cable,
+        length: cableSegmentLength(coordinates),
+        routeType: DOMESTIC_CABLE_SYSTEMS.has(cable) ? 'domestic' : 'overseas',
+      };
+    });
+
+  const byCable = new Map();
+  routes.forEach((route) => {
+    if (!byCable.has(route.cable)) byCable.set(route.cable, []);
+    byCable.get(route.cable).push(route);
+  });
+  const scheduled = [];
+  for (const cableRoutes of byCable.values()) {
+    const nodes = new Map();
+    const nodeFor = (coordinate) => {
+      const key = `${coordinate[0].toFixed(4)},${coordinate[1].toFixed(4)}`;
+      if (!nodes.has(key)) {
+        nodes.set(key, {
+          coordinate,
+          distance: Number.POSITIVE_INFINITY,
+          edges: [],
+        });
+      }
+      return nodes.get(key);
+    };
+
+    cableRoutes.forEach((route) => {
+      route.startNode = nodeFor(route.coordinates[0]);
+      route.endNode = nodeFor(route.coordinates.at(-1));
+      route.startNode.edges.push({ route, next: route.endNode });
+      route.endNode.edges.push({ route, next: route.startNode });
+    });
+
+    const pending = new Set(nodes.values());
+    while (pending.size) {
+      let current = null;
+      for (const node of pending) {
+        if (!current || node.distance < current.distance) current = node;
+      }
+      if (!Number.isFinite(current.distance)) {
+        for (const node of pending) {
+          if (!current || routeDistance(node.coordinate) < routeDistance(current.coordinate)) current = node;
+        }
+        current.distance = routeDistance(current.coordinate);
+      }
+      pending.delete(current);
+      current.edges.forEach(({ route, next }) => {
+        const distance = current.distance + route.length;
+        if (distance < next.distance) next.distance = distance;
+      });
+    }
+
+    cableRoutes.forEach((route) => {
+      const reverse = route.endNode.distance < route.startNode.distance;
+      const coordinates = reverse ? [...route.coordinates].reverse() : route.coordinates;
+      const startDistance = Math.min(route.startNode.distance, route.endNode.distance);
+      scheduled.push({
+        ...route,
+        coordinates,
+        startDistance,
+        endDistance: startDistance + route.length,
+      });
+    });
+  }
+
+  const maxDistance = Math.max(1, ...scheduled.map(({ endDistance }) => endDistance));
+  return scheduled.map((route) => ({
+    ...route,
+    start: clamp01(route.startDistance / maxDistance),
+    end: clamp01(route.endDistance / maxDistance),
+  }));
+}
+
+function addOutboundRoutes(map, cableData) {
   const wrap = map.getContainer();
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'landing-routes-svg outbound-routes-svg');
   svg.setAttribute('aria-hidden', 'true');
   wrap.appendChild(svg);
+  const routes = prepareCableRoutes(cableData);
   let domesticProgress = 0;
   let overseasProgress = 0;
   let drawRaf = 0;
@@ -353,81 +508,44 @@ function addOutboundRoutes(map, destinations) {
       const progress = path.dataset.routeType === 'domestic'
         ? domesticProgress
         : overseasProgress;
-      setSvgPathProgress(path, progress);
+      const start = Number(path.dataset.routeStart) || 0;
+      const end = Number(path.dataset.routeEnd) || 1;
+      const localProgress = rangeProgress(progress, start, Math.max(start + 0.001, end));
+      path.style.visibility = localProgress <= 0.001 ? 'hidden' : 'visible';
+      path.style.strokeDashoffset = (1 - localProgress).toFixed(3);
     }
-  };
-
-  const dotCenter = (siteId, origin) => {
-    const dot = wrap.querySelector(
-      `.network-destination-pin[data-site-id="${siteId}"] .land-pin-dot`,
-    );
-    if (!dot) return null;
-    const box = dot.getBoundingClientRect();
-    return {
-      x: box.left + box.width / 2 - origin.left,
-      y: box.top + box.height / 2 - origin.top,
-    };
-  };
-
-  const visualTaiwanCenter = (origin) => {
-    const centers = [...wrap.querySelectorAll('.network-landing-pin .land-pin-dot')]
-      .map((dot) => {
-        const box = dot.getBoundingClientRect();
-        return {
-          x: box.left + box.width / 2 - origin.left,
-          y: box.top + box.height / 2 - origin.top,
-        };
-      });
-
-    if (!centers.length) return map.project(TAIWAN_ROUTE_ORIGIN);
-
-    const xs = centers.map(({ x }) => x);
-    const ys = centers.map(({ y }) => y);
-    return {
-      x: (Math.min(...xs) + Math.max(...xs)) / 2,
-      y: (Math.min(...ys) + Math.max(...ys)) / 2,
-    };
   };
 
   const draw = () => {
     const width = wrap.clientWidth;
     const height = wrap.clientHeight;
     if (!width || !height) return;
-    const origin = wrap.getBoundingClientRect();
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     svg.setAttribute('width', String(width));
     svg.setAttribute('height', String(height));
 
     const paths = [];
-    const start = visualTaiwanCenter(origin);
-    for (const site of destinations) {
-      const curve = OUTBOUND_ROUTE_CURVES[site.id] ?? 0;
-      const end = dotCenter(site.id, origin);
-      if (!start || !end) continue;
-
-      const dx = end.x - start.x;
-      const dy = end.y - start.y;
-      const distance = Math.hypot(dx, dy) || 1;
-      const normal = { x: -dy / distance, y: dx / distance };
-      const bend = distance * curve;
-      const c1 = {
-        x: start.x + dx * 0.34 + normal.x * bend,
-        y: start.y + dy * 0.34 + normal.y * bend,
-      };
-      const c2 = {
-        x: start.x + dx * 0.72 + normal.x * bend,
-        y: start.y + dy * 0.72 + normal.y * bend,
-      };
-      const d = `M${start.x.toFixed(1)},${start.y.toFixed(1)} C${c1.x.toFixed(1)},${c1.y.toFixed(1)} ${c2.x.toFixed(1)},${c2.y.toFixed(1)} ${end.x.toFixed(1)},${end.y.toFixed(1)}`;
-      const routeType = DOMESTIC_DESTINATIONS.has(site.id) ? 'domestic' : 'overseas';
+    const mapCenter = map.getCenter().lng;
+    for (const route of routes) {
+      const step = Math.max(1, Math.ceil(route.coordinates.length / 120));
+      const coordinates = route.coordinates.filter((_, index) => index % step === 0);
+      if (coordinates.at(-1) !== route.coordinates.at(-1)) coordinates.push(route.coordinates.at(-1));
+      const d = coordinates
+        .map(([lng, lat], index) => {
+          const point = map.project([wrapLongitude(lng, mapCenter), lat]);
+          return `${index ? 'L' : 'M'}${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+        })
+        .join(' ');
+      const { routeType } = route;
       const color = routeType === 'domestic' ? DOMESTIC_CABLE : OVERSEAS_CABLE;
+      const shared = `data-route-type="${routeType}" data-route-start="${route.start.toFixed(4)}" data-route-end="${route.end.toFixed(4)}" pathLength="1" style="stroke-dasharray:1;stroke-dashoffset:1"`;
       paths.push(
-        `<path class="outbound-route-path outbound-route-path--glow" data-route-type="${routeType}" data-full-path="${d}" d="${d}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" opacity="0.24" filter="url(#${wrap.id}-outbound-blur)"></path>` +
-          `<path class="outbound-route-path" data-route-type="${routeType}" data-full-path="${d}" d="${d}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round"></path>`,
+        `<path class="outbound-route-path outbound-route-path--glow" ${shared} d="${d}" fill="none" stroke="${color}" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.14" filter="url(#${wrap.id}-outbound-blur)"></path>` +
+          `<path class="outbound-route-path" ${shared} d="${d}" fill="none" stroke="${color}" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"></path>`,
       );
     }
     svg.innerHTML =
-      `<defs><filter id="${wrap.id}-outbound-blur"><feGaussianBlur stdDeviation="2.2"/></filter></defs>${paths.join('')}`;
+      `<defs><filter id="${wrap.id}-outbound-blur"><feGaussianBlur stdDeviation="1.4"/></filter></defs>${paths.join('')}`;
     applyProgress();
   };
 
@@ -505,7 +623,7 @@ async function saveDestinations(sites) {
   return postConfig('/__save-destinations', payload);
 }
 
-function addDestinationPins(map, sites, { editable = false, hint } = {}) {
+function addDestinationPins(map, sites, { editable = false, hint, wrapCenter = null } = {}) {
   const elements = [];
   for (const site of sites) {
     const el = document.createElement('div');
@@ -513,8 +631,9 @@ function addDestinationPins(map, sites, { editable = false, hint } = {}) {
     el.className = `land-pin dest-pin network-destination-pin network-destination-pin--${routeType} land-pin--${site.anchor}`;
     el.dataset.siteId = site.id;
     el.innerHTML = `<span class="land-pin-dot"></span><span class="land-pin-label">${site.name}</span>`;
+    const lng = wrapCenter === null ? site.lng : wrapLongitude(site.lng, wrapCenter);
     const marker = new maplibregl.Marker({ element: el, anchor: 'center', draggable: false })
-      .setLngLat([site.lng, site.lat])
+      .setLngLat([lng, site.lat])
       .addTo(map);
     if (editable) enableDestPinDrag(map, marker, site, sites, hint);
     elements.push(el);
@@ -623,24 +742,25 @@ function landingCameraFor(map) {
   return {
     lng: camera?.center.lng ?? 121.05,
     lat: camera?.center.lat ?? 23.72,
-    zoom: camera?.zoom ?? 7,
+    zoom: (camera?.zoom ?? 7) - (mobile ? 0.24 : 0.48),
   };
 }
 
-function globalCameraFor(view) {
+function globalCameraFor(map, destinations) {
   const mobile = window.matchMedia('(max-width: 800px)').matches;
-  if (mobile) {
-    return {
-      lng: 129,
-      lat: 22.5,
-      zoom: Math.min(view?.zoom ?? 3.5, 1.9),
-    };
+  const padding = mobile
+    ? { top: 64, bottom: 310, left: 24, right: 24 }
+    : { top: 72, bottom: 72, left: 64, right: 64 };
+  const bounds = new maplibregl.LngLatBounds();
+  for (const site of destinations) {
+    bounds.extend([wrapLongitude(site.lng), site.lat]);
   }
-  const viewportZoom = mix(3.15, 3.5, clamp01((window.innerHeight - 720) / 330));
+  bounds.extend(TAIWAN_ROUTE_ORIGIN);
+  const camera = map.cameraForBounds(bounds, { padding, maxZoom: mobile ? 1.8 : 3.1 });
   return {
-    lng: view?.lng ?? 119.05946,
-    lat: view?.lat ?? 21.64738,
-    zoom: Math.min(view?.zoom ?? 3.5, viewportZoom),
+    lng: camera?.center.lng ?? NETWORK_WRAP_CENTER,
+    lat: camera?.center.lat ?? 20,
+    zoom: camera?.zoom ?? (mobile ? 1 : 2),
   };
 }
 
@@ -658,7 +778,6 @@ async function initNetworkStoryMap() {
   if (!container || !scene || container.querySelector('.maplibregl-canvas')) return;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const globalView = await loadTaiwanView();
   const map = new maplibregl.Map({
     container,
     style: mapStyleUrl(),
@@ -676,12 +795,16 @@ async function initNetworkStoryMap() {
   });
 
   map.on('load', async () => {
-    restyleBaseMap(map);
-    const [landings, destinations] = await Promise.all([loadLandings(), loadDestinations()]);
+    restyleBaseMap(map, { useSitePalette: true });
+    const [landings, destinations, cableData] = await Promise.all([
+      loadLandings(),
+      loadDestinations(),
+      loadCablesData(),
+    ]);
     addLandingPins(map, landings, 'land-pin network-landing-pin');
     const landingRoutes = addLandingRoutes(map, landings);
-    addDestinationPins(map, destinations);
-    const outboundRoutes = addOutboundRoutes(map, destinations);
+    addDestinationPins(map, destinations, { wrapCenter: NETWORK_WRAP_CENTER });
+    const outboundRoutes = addOutboundRoutes(map, cableData);
     const landingPanel = scene.querySelector('[data-network-panel="landing"]');
     const globalPanel = scene.querySelector('[data-network-panel="global"]');
     let landingCamera;
@@ -691,7 +814,7 @@ async function initNetworkStoryMap() {
     const updateCameras = () => {
       map.resize();
       landingCamera = landingCameraFor(map);
-      globalCamera = globalCameraFor(globalView);
+      globalCamera = globalCameraFor(map, destinations);
     };
 
     const scrollProgress = () => {
@@ -706,38 +829,46 @@ async function initNetworkStoryMap() {
       const progress = scrollProgress();
       const incomingProgress = reduceMotion.matches
         ? 1
-        : smoothstep(rangeProgress(progress, 0.02, 0.3));
-      const cameraProgress = reduceMotion.matches
-        ? Number(progress >= 0.56)
-        : smoothstep(rangeProgress(progress, 0.3, 0.54));
+        : smoothstep(rangeProgress(progress, 0.02, 0.24));
+      const zoomProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.42, 0.54));
+      const panProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.54, 0.62));
       const routeProgress = reduceMotion.matches
-        ? Number(progress >= 0.56)
+        ? Number(progress >= 0.5)
         : smoothstep(rangeProgress(progress, 0.42, 0.56));
       const domesticRouteProgress = reduceMotion.matches
-        ? Number(progress >= 0.56)
-        : smoothstep(rangeProgress(progress, 0.56, 0.78));
+        ? Number(progress >= 0.62)
+        : smoothstep(rangeProgress(progress, 0.62, 0.775));
       const overseasRouteProgress = reduceMotion.matches
-        ? Number(progress >= 0.56)
-        : smoothstep(rangeProgress(progress, 0.62, 0.94));
+        ? Number(progress >= 0.62)
+        : smoothstep(rangeProgress(progress, 0.62, 0.845));
       const landingPinProgress = reduceMotion.matches
-        ? Number(progress >= 0.56)
+        ? Number(progress >= 0.5)
         : smoothstep(rangeProgress(progress, 0.42, 0.56));
       const destinationPinProgress = reduceMotion.matches
-        ? Number(progress >= 0.56)
-        : smoothstep(rangeProgress(progress, 0.5, 0.56));
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.44, 0.5));
       const landingPanelProgress = reduceMotion.matches
-        ? Number(progress >= 0.56)
-        : smoothstep(rangeProgress(progress, 0.43, 0.55));
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.42, 0.55));
       const globalPanelProgress = reduceMotion.matches
-        ? Number(progress >= 0.56)
-        : smoothstep(rangeProgress(progress, 0.52, 0.66));
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.57, 0.66));
+
+      const zoomCenter = [
+        mix(landingCamera.lng, TAIWAN_ROUTE_ORIGIN[0], zoomProgress),
+        mix(landingCamera.lat, TAIWAN_ROUTE_ORIGIN[1], zoomProgress),
+      ];
 
       map.jumpTo({
         center: [
-          mix(landingCamera.lng, globalCamera.lng, cameraProgress),
-          mix(landingCamera.lat, globalCamera.lat, cameraProgress),
+          mix(zoomCenter[0], globalCamera.lng, panProgress),
+          mix(zoomCenter[1], globalCamera.lat, panProgress),
         ],
-        zoom: mix(landingCamera.zoom, globalCamera.zoom, cameraProgress),
+        zoom: mix(landingCamera.zoom, globalCamera.zoom, zoomProgress),
         bearing: 0,
         pitch: 0,
       });
@@ -752,6 +883,15 @@ async function initNetworkStoryMap() {
       setPanelState(landingPanel, 1 - landingPanelProgress, -12 * landingPanelProgress);
       setPanelState(globalPanel, globalPanelProgress, 14 * (1 - globalPanelProgress));
       scene.dataset.networkProgress = progress.toFixed(3);
+      scene.dataset.networkPhase = progress < 0.24
+          ? 'landing-routes'
+          : progress < 0.42
+            ? 'landing-hold'
+            : progress < 0.62
+              ? 'zoom-out'
+              : progress < 0.845
+                ? 'outbound-routes'
+                : 'global-hold';
       scene.dataset.incomingProgress = incomingProgress.toFixed(3);
       scene.dataset.destinationProgress = destinationPinProgress.toFixed(3);
       scene.dataset.domesticProgress = domesticRouteProgress.toFixed(3);
@@ -783,12 +923,13 @@ async function initNetworkStoryMap() {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    initCoverMap();
-    initNetworkStoryMap();
-  });
-} else {
+function initMaps() {
   initCoverMap();
-  initNetworkStoryMap();
+  if (!new URLSearchParams(location.search).has('cover-preview')) initNetworkStoryMap();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMaps);
+} else {
+  initMaps();
 }

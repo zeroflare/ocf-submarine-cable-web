@@ -134,20 +134,16 @@ function renderArticleScenes(articles) {
   return articles
     .map((article, index) => {
       const sceneId = index === 0 ? 'articles' : `article-${padOrder(article.order)}`;
-      const draft = article.draft ? '<span class="draft-tag">撰寫中</span>' : '';
-      return `<section class="scene" id="${sceneId}" data-scene="${sceneId}" style="--scene-vh: 100">
-  <div class="scene-sticky">
-    <div class="article-stage">
+      return `<section class="scene article-scene" id="${sceneId}" data-scene="${sceneId}" style="--scene-vh: 100">
+  <div class="article-stage">
       ${renderArticleVisual(article)}
       <div class="article-visual-veil" aria-hidden="true"></div>
       <aside class="panel article-panel">
-        <p class="panel-kicker">${padOrder(article.order)}　${escapeHtml(article.subtitle)}${draft}</p>
         <h2>${escapeHtml(article.title)}</h2>
         <div class="panel-rule"></div>
         <p>${escapeHtml(article.description)}</p>
         <a class="article-read" href="./articles/${escapeHtml(article.slug)}/" data-article="${escapeHtml(article.slug)}">閱讀全文 →</a>
       </aside>
-    </div>
   </div>
 </section>`;
     })
@@ -169,7 +165,6 @@ function articleBodyHtml(article, fromDir) {
 function renderArticleInner(article, fromDir) {
   const draftNote = article.draft ? ' ／ 撰寫中' : '';
   return `<article class="article-wrap article-wrap--modal">
-      <p class="article-kicker">${padOrder(article.order)}　${escapeHtml(article.subtitle)}</p>
       <h1>${escapeHtml(article.title)}</h1>
       <p class="article-desc">${escapeHtml(article.description)}</p>
       <p class="article-meta">${escapeHtml(dateLabel(article.pubDate))}${draftNote}</p>
