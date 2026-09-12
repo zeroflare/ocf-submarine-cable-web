@@ -2,71 +2,71 @@
   {
     "id": "singapore",
     "name": "新加坡",
-    "lng": 104.1279,
-    "lat": 1.2252,
+    "lng": 103.97134,
+    "lat": 1.34913,
     "anchor": "right"
   },
   {
     "id": "hongkong",
     "name": "香港",
-    "lng": 114.05169,
-    "lat": 23.27652,
+    "lng": 114.26638,
+    "lat": 22.28127,
     "anchor": "left"
   },
   {
     "id": "manila",
     "name": "馬尼拉",
-    "lng": 120.96323,
-    "lat": 16.06006,
+    "lng": 120.79635,
+    "lat": 14.31308,
     "anchor": "right"
   },
   {
     "id": "tokyo",
     "name": "東京",
-    "lng": 139.88731,
-    "lat": 37.40439,
+    "lng": 139.98237,
+    "lat": 35.01622,
     "anchor": "right"
   },
   {
     "id": "guam",
     "name": "關島",
-    "lng": 144.69383,
-    "lat": 16.59613,
+    "lng": 144.65011,
+    "lat": 13.36242,
     "anchor": "right"
   },
   {
     "id": "losangeles",
     "name": "洛杉磯",
-    "lng": 154.25954,
-    "lat": 39.73392,
+    "lng": -118.41596,
+    "lat": 33.87323,
     "anchor": "right"
   },
   {
     "id": "kinmen",
     "name": "金門",
-    "lng": 117.97187,
-    "lat": 29.39692,
+    "lng": 118.31585,
+    "lat": 24.41342,
     "anchor": "left"
   },
   {
     "id": "matsu",
     "name": "馬祖",
-    "lng": 119.63846,
-    "lat": 31.54245,
+    "lng": 119.95353,
+    "lat": 26.15222,
     "anchor": "left"
   },
   {
     "id": "sanchong",
     "name": "三重",
-    "lng": 136.8525,
-    "lat": 40.07992,
+    "lng": 136.88379,
+    "lat": 34.32814,
     "anchor": "left"
   },
   {
     "id": "shanghai",
     "name": "上海",
-    "lng": 121.94813,
-    "lat": 37.53868,
+    "lng": 121.88443,
+    "lat": 31.44647,
     "anchor": "left"
   }
 ]
