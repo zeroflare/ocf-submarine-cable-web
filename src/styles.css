@@ -773,6 +773,31 @@ html.is-cover-preview #cover {
   object-position: top;
 }
 
+.portals-grid-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.portal-card--social .portal-card-desc {
+  margin-bottom: 12px;
+}
+
+.portal-card-social {
+  font-size: 14px;
+  color: var(--text-mid);
+}
+
+.portal-card-social a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+.portal-card-social a:hover {
+  text-decoration: underline;
+}
+
 .card-top {
   display: flex;
   justify-content: space-between;
@@ -1472,12 +1497,20 @@ html:has(.article-modal-page) body {
 
 .sea-hazard-margin--left {
   left: 0;
-  width: max(0px, calc((100% - 600px) / 2 + min(250px, 19vw)));
+  width: max(2px, calc((100% - 600px) / 2 + min(250px, 19vw) + 2px));
 }
 
 .sea-hazard-margin--right {
   right: 0;
-  width: max(0px, calc((100% - 600px) / 2 - min(250px, 19vw)));
+  width: max(4px, calc((100% - 600px) / 2 - min(250px, 19vw) + 4px));
+}
+
+/* The shortened desktop slide spacing leaves 12vw beyond the final slide.
+   Extend the last seabed strip into that space so the scene never exposes
+   the water background at the end of the horizontal journey. */
+.sea-hazard-slide:last-child .sea-hazard-margin--right {
+  right: -12vw;
+  width: max(calc(12vw + 4px), calc((100% - 600px) / 2 - min(250px, 19vw) + 12vw + 4px));
 }
 
 .sea-hazard-frame {
@@ -1496,6 +1529,7 @@ html:has(.article-modal-page) body {
   width: 60px;
   height: 100%;
   max-width: none;
+  margin-inline: -1px;
 }
 
 .sea-hazard {
@@ -1540,9 +1574,9 @@ html:has(.article-modal-page) body {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -1px;
+  left: -2px;
   z-index: 1;
-  width: calc(100% + 2px);
+  width: calc(100% + 4px);
   height: 100%;
   max-width: none;
 }
@@ -1619,15 +1653,6 @@ html:has(.article-modal-page) body {
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-}
-
-.sea-hazard-margin .sea-cable-glow,
-.sea-hazard-margin .sea-cable-line,
-.sea-hazard-margin .sea-cable-signal,
-.sea-hazard-transition .sea-cable-glow,
-.sea-hazard-transition .sea-cable-line,
-.sea-hazard-transition .sea-cable-signal {
-  transform: translateY(32px);
 }
 
 .sea-cable-glow,
@@ -2267,6 +2292,10 @@ html:has(.article-modal-page) body {
    specificity as the max-width:800px block earlier in this file and
    would otherwise win the cascade by source order alone. */
 @media (max-width: 800px) {
+  .portals-grid-row {
+    grid-template-columns: 1fr;
+  }
+
   .panel.signal-panel {
     top: auto;
     right: 4%;
