@@ -1431,7 +1431,7 @@ html:has(.article-modal-page) body {
 .sea-hazard-stage {
   padding-top: var(--header-h);
   background:
-    linear-gradient(180deg, var(--illus-sky-2) 0 40%, var(--illus-sea-2) 40% 100%);
+    linear-gradient(180deg, var(--illus-sky-2) 0 44.2%, var(--illus-sea-2) 44.2% 100%);
 }
 
 .sea-hazard-story {
@@ -1447,7 +1447,7 @@ html:has(.article-modal-page) body {
 
 .sea-hazard-grid {
   display: flex;
-  width: 300%;
+  width: 264%;
   height: 100%;
   will-change: transform;
 }
@@ -1472,12 +1472,12 @@ html:has(.article-modal-page) body {
 
 .sea-hazard-margin--left {
   left: 0;
-  width: max(0px, calc((100% - 600px) / 2 + min(260px, 19vw)));
+  width: max(0px, calc((100% - 600px) / 2 + min(250px, 19vw)));
 }
 
 .sea-hazard-margin--right {
   right: 0;
-  width: max(0px, calc((100% - 600px) / 2 - min(260px, 19vw)));
+  width: max(0px, calc((100% - 600px) / 2 - min(250px, 19vw)));
 }
 
 .sea-hazard-frame {
@@ -1487,7 +1487,7 @@ html:has(.article-modal-page) body {
   height: 100%;
   width: 600px;
   max-width: 100%;
-  transform: translateX(min(260px, 19vw));
+  transform: translateX(min(250px, 19vw));
 }
 
 .sea-hazard-transition {
@@ -1510,7 +1510,7 @@ html:has(.article-modal-page) body {
 .sea-hazard h2 {
   position: absolute;
   z-index: 5;
-  top: clamp(68px, 10.8vh, 92px);
+  top: clamp(100px, 14.8vh, 124px);
   left: 50%;
   width: max-content;
   max-width: calc(100% - 24px);
@@ -1524,14 +1524,16 @@ html:has(.article-modal-page) body {
 .sea-hazard > p {
   position: absolute;
   z-index: 5;
-  top: clamp(104px, 15.8vh, 134px);
+  top: clamp(136px, 19.8vh, 166px);
   left: 50%;
   bottom: auto;
-  width: min(84%, 330px);
+  width: max-content;
+  max-width: none;
   transform: translateX(-50%);
   color: var(--text-mid);
-  font-size: clamp(11px, 1.05vw, 14px);
+  font-size: 16px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .sea-hazard-environment {
@@ -1619,6 +1621,15 @@ html:has(.article-modal-page) body {
   vector-effect: non-scaling-stroke;
 }
 
+.sea-hazard-margin .sea-cable-glow,
+.sea-hazard-margin .sea-cable-line,
+.sea-hazard-margin .sea-cable-signal,
+.sea-hazard-transition .sea-cable-glow,
+.sea-hazard-transition .sea-cable-line,
+.sea-hazard-transition .sea-cable-signal {
+  transform: translateY(32px);
+}
+
 .sea-cable-glow,
 .sea-cable-line {
   stroke: var(--warning);
@@ -1663,7 +1674,7 @@ html:has(.article-modal-page) body {
 }
 
 .sea-vessel--fishing {
-  top: 29.5%;
+  top: 33.7%;
   left: 50%;
   width: min(48%, 220px);
   transform: translateX(-50%);
@@ -1671,7 +1682,7 @@ html:has(.article-modal-page) body {
 
 .sea-vessel--ship,
 .sea-ship-stern-fix {
-  top: 29.7%;
+  top: 33.9%;
   left: 50%;
   width: min(70%, 330px);
   transform: translateX(-50%);
@@ -1695,7 +1706,7 @@ html:has(.article-modal-page) body {
 }
 
 .sea-vessel--dredger {
-  top: 30.8%;
+  top: 35%;
   left: 49%;
   width: min(72%, 340px);
   clip-path: inset(0 0 0 1%);
@@ -1704,7 +1715,7 @@ html:has(.article-modal-page) body {
 
 .sea-tool--trawl {
   top: auto;
-  bottom: 17%;
+  bottom: 12.8%;
   left: 50%;
   width: min(66%, 310px);
   transform: translateX(-50%);
@@ -1731,7 +1742,7 @@ html:has(.article-modal-page) body {
 }
 
 .sea-tool--anchor {
-  top: 54.7%;
+  top: 58.9%;
   left: 54%;
   width: min(23%, 108px);
   transform: translateX(-50%);
@@ -1751,20 +1762,20 @@ html:has(.article-modal-page) body {
 @keyframes sea-trawl-link-drag {
   0%,
   100% {
-    d: path("M192 310 C202 400 224 520 250 596");
+    d: path("M192 342 C202 432 224 552 250 628");
   }
   50% {
-    d: path("M192 310 C208 400 248 520 307 596");
+    d: path("M192 342 C208 432 248 552 307 628");
   }
 }
 
 @keyframes sea-trawl-link-drag-mobile {
   0%,
   100% {
-    d: path("M192 310 C202 400 224 520 250 596");
+    d: path("M192 342 C202 432 224 552 250 628");
   }
   50% {
-    d: path("M192 310 C210 400 254 520 322 596");
+    d: path("M192 342 C210 432 254 552 322 628");
   }
 }
 
@@ -1781,10 +1792,10 @@ html:has(.article-modal-page) body {
 @keyframes sea-anchor-link-lift {
   0%,
   100% {
-    d: path("M318 308 C304 362 286 454 252 520");
+    d: path("M318 340 C304 394 286 486 252 552");
   }
   50% {
-    d: path("M318 308 C304 350 286 436 252 502");
+    d: path("M318 340 C304 382 286 468 252 534");
   }
 }
 
@@ -2314,6 +2325,10 @@ html:has(.article-modal-page) body {
     align-items: stretch;
   }
 
+  .sea-hazard-grid {
+    width: 300%;
+  }
+
   .sea-hazard-frame {
     width: 100%;
     transform: none;
@@ -2329,7 +2344,7 @@ html:has(.article-modal-page) body {
   }
 
   .sea-hazard h2 {
-    top: 48px;
+    top: 80px;
     width: calc(100% - 12px);
     font-size: 20px;
     text-align: center;
@@ -2337,31 +2352,33 @@ html:has(.article-modal-page) body {
   }
 
   .sea-hazard > p {
-    top: 84px;
+    top: 116px;
     bottom: auto;
     width: 88%;
+    max-width: 88%;
     font-size: 10px;
+    white-space: normal;
   }
 
   .sea-vessel--fishing {
-    top: 30%;
+    top: 34.2%;
     width: 60%;
   }
 
   .sea-vessel--ship,
   .sea-ship-stern-fix {
-    top: 30.5%;
+    top: 34.7%;
     width: 80%;
   }
 
   .sea-vessel--dredger {
-    top: 30.5%;
+    top: 34.7%;
     width: 86%;
   }
 
   .sea-tool--trawl {
     top: auto;
-    bottom: 19.5%;
+    bottom: 15.3%;
     width: 84%;
   }
 
@@ -2370,7 +2387,7 @@ html:has(.article-modal-page) body {
   }
 
   .sea-tool--anchor {
-    top: 54.2%;
+    top: 58.4%;
     left: 54%;
     width: 34%;
   }

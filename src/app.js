@@ -111,20 +111,20 @@ function initSignalJourney() {
       <path class="signal-flow" d="M925 674 H985 C1125 690 1450 814 1822 814 C2195 814 2520 690 2660 674 H2720 L3100 674" fill="none" stroke="var(--cyan)" stroke-width="2.4" stroke-dasharray="10 8" stroke-linecap="round"></path>
       <g fill="var(--illus-ink)" opacity="0.24">
         <ellipse cx="2720" cy="708" rx="70" ry="22"></ellipse>
-        <ellipse cx="3100" cy="708" rx="84" ry="22"></ellipse>
+        <ellipse cx="3100" cy="720" rx="84" ry="22"></ellipse>
       </g>
-      <text x="1822" y="770" text-anchor="middle" fill="var(--text-dark)" font-size="22" font-weight="700">海纜</text>
+      <text x="1822" y="770" text-anchor="middle" fill="var(--text-dark)" font-size="16" font-weight="700">海纜</text>
       <image href="./journey-landing-station.png" x="2654" y="588" width="132" height="132" preserveAspectRatio="xMidYMax meet"></image>
-      <text x="2720" y="752" text-anchor="middle" fill="var(--text-mid)" font-size="13" font-weight="600">海外海纜登陸站</text>
+      <text x="2720" y="752" text-anchor="middle" fill="var(--text-mid)" font-size="16" font-weight="600">海外海纜登陸站</text>
       <image href="./journey-overseas-server.png" x="3008" y="536" width="184" height="222" preserveAspectRatio="xMidYMax meet"></image>
-      <text x="3100" y="752" text-anchor="middle" fill="var(--text-mid)" font-size="13" font-weight="600">海外伺服器</text>
-      <text x="780" y="790" text-anchor="middle" fill="var(--text-dark)" font-size="28" font-weight="700" opacity="0.88">台灣</text>
-      <text x="2920" y="790" text-anchor="middle" fill="var(--text-dark)" font-size="28" font-weight="700" opacity="0.88">國外</text>
+      <text x="3100" y="764" text-anchor="middle" fill="var(--text-mid)" font-size="16" font-weight="600">海外伺服器</text>
+      <text x="780" y="814" text-anchor="middle" fill="var(--text-dark)" font-size="28" font-weight="700" opacity="0.88">台灣</text>
+      <text x="2920" y="814" text-anchor="middle" fill="var(--text-dark)" font-size="28" font-weight="700" opacity="0.88">國外</text>
       </g>
       <g class="journey-first-station">
         <ellipse cx="921" cy="708" rx="70" ry="22" fill="var(--illus-ink)" opacity="0.24"></ellipse>
         <image href="./journey-landing-station.png" x="859" y="588" width="132" height="132" preserveAspectRatio="xMidYMax meet"></image>
-        <text x="925" y="752" text-anchor="middle" fill="var(--text-mid)" font-size="13" font-weight="600">台灣海纜登陸站</text>
+        <text x="925" y="752" text-anchor="middle" fill="var(--text-mid)" font-size="16" font-weight="600">台灣海纜登陸站</text>
       </g>
     </g>`;
   introStage.prepend(journeySvg);
@@ -284,8 +284,8 @@ function initSeaHazardStory() {
     const slideProgress = reduceMotion.matches
       ? Math.round(progress * 2)
       : range(progress, 0.08, 0.86) * 2;
-    const viewportWidth = viewport.clientWidth;
-    const x = -slideProgress * viewportWidth;
+    const slideWidth = slides[0].getBoundingClientRect().width;
+    const x = -slideProgress * slideWidth;
 
     track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`;
     scene.dataset.seaPhase = slideProgress < 0.5

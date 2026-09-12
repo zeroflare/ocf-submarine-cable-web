@@ -25,7 +25,7 @@
   <path class="signal-flow" d="M910 168 C 1010 175, 1095 295, 1140 320" fill="none" stroke="var(--cyan)" stroke-width="2.4" stroke-dasharray="10 8" stroke-linecap="round"></path>
   <circle cx="910" cy="168" r="4" fill="var(--cyan)"></circle>
   <circle cx="1140" cy="320" r="4" fill="var(--cyan)"></circle>
-  <text x="1140" y="830" text-anchor="middle" fill="var(--text-mid)" font-size="26" font-weight="600" font-family="Arial, Noto Sans TC, sans-serif">基地台</text>
+  <text x="1140" y="830" text-anchor="middle" fill="var(--text-mid)" font-size="32" font-weight="600" font-family="Arial, Noto Sans TC, sans-serif">基地台</text>
 </g>
 </svg> <aside class="panel">  <h2>網路訊號從哪裡來？</h2> <div class="panel-rule"></div> <p>手機上的行動網路，把資料送到附近的基地台。</p><p>這只是整段旅程的<strong>第一站</strong>。</p>    </aside> </div>  </div> </section>
 <section class="scene" id="journey-intro" data-scene="journey-intro" style="--scene-vh: 100">
@@ -144,11 +144,11 @@
           <h2>漁船</h2>
           <img class="sea-vessel sea-vessel--fishing" src="./sea-fishing-boat.png" alt="漁船">
           <svg class="sea-hazard-environment" viewBox="0 0 480 760" preserveAspectRatio="none" aria-hidden="true">
-            <path class="sea-water-fill" d="M0 320 H480 V638 H0 Z"></path>
+            <path class="sea-water-fill" d="M0 352 H480 V638 H0 Z"></path>
             <path class="sea-bed-fill" transform="translate(0 28)" d="M0 600 C100 580 188 584 270 608 C340 628 414 600 480 600 V760 H0 Z"></path>
             <path class="sea-bed-line" transform="translate(0 28)" d="M0 600 C100 580 188 584 270 608 C340 628 414 600 480 600"></path>
-            <path class="sea-tool-line" d="M192 310 C202 400 224 520 250 596"></path>
-            <g class="sea-cable-pair" transform="translate(0 28)">
+            <path class="sea-tool-line" d="M192 342 C202 432 224 552 250 628"></path>
+            <g class="sea-cable-pair" transform="translate(0 60)">
               <path class="sea-cable-glow" d="M0 580 C94 568 168 574 230 592 C268 604 300 590 326 574 C372 554 430 580 480 580">
                 <animate attributeName="d" dur="4.2s" repeatCount="indefinite" values="M0 580 C94 568 168 574 230 592 C268 604 300 590 326 574 C372 554 430 580 480 580;M0 580 C94 568 168 574 252 602 C290 614 318 594 342 576 C386 556 432 580 480 580;M0 580 C94 568 168 574 230 592 C268 604 300 590 326 574 C372 554 430 580 480 580"></animate>
               </path>
@@ -203,11 +203,11 @@
             <path d="M646 142 H655 V157 H647"></path>
           </svg>
           <svg class="sea-hazard-environment" viewBox="0 0 480 760" preserveAspectRatio="none" aria-hidden="true">
-            <path class="sea-water-fill" d="M0 320 H480 V638 H0 Z"></path>
+            <path class="sea-water-fill" d="M0 352 H480 V638 H0 Z"></path>
             <path class="sea-bed-fill" transform="translate(0 28)" d="M0 600 C112 600 216 606 288 620 C356 632 414 600 480 600 V760 H0 Z"></path>
             <path class="sea-bed-line" transform="translate(0 28)" d="M0 600 C112 600 216 606 288 620 C356 632 414 600 480 600"></path>
-            <path class="sea-tool-line" d="M318 308 C304 362 286 454 252 520"></path>
-            <g class="sea-cable-pair" transform="translate(0 28)">
+            <path class="sea-tool-line" d="M318 340 C304 394 286 486 252 552"></path>
+            <g class="sea-cable-pair" transform="translate(0 60)">
               <path class="sea-cable-glow" d="M0 580 C112 580 174 588 216 548 C232 530 238 490 250 472 C256 464 264 464 270 472 C282 490 278 530 292 554 C326 594 410 580 480 580"></path>
               <path class="sea-cable-line" d="M0 580 C112 580 174 588 216 548 C232 530 238 490 250 472 C256 464 264 464 270 472 C282 490 278 530 292 554 C326 594 410 580 480 580"></path>
               <path class="sea-cable-signal" d="M0 580 C112 580 174 588 216 548 C232 530 238 490 250 472 C256 464 264 464 270 472 C282 490 278 530 292 554 C326 594 410 580 480 580"></path>
@@ -253,51 +253,50 @@
           <h2>抽砂船</h2>
           <img class="sea-vessel sea-vessel--dredger" src="./sea-dredger.png" alt="抽砂船">
           <svg class="sea-hazard-environment" viewBox="0 0 480 760" preserveAspectRatio="none" aria-hidden="true">
-            <path class="sea-water-fill" d="M0 320 H480 V760 H0 Z"></path>
+            <path class="sea-water-fill" d="M0 352 H480 V760 H0 Z"></path>
             <g class="sea-dredge-system">
-              <path class="sea-dredge-pipe-shell" d="M370 328 C356 410 336 558 304 698"></path>
-              <path class="sea-dredge-pipe-core" d="M370 328 C356 410 336 558 304 698"></path>
+              <path class="sea-dredge-pipe-shell" d="M370 360 C356 430 336 570 304 698"></path>
+              <path class="sea-dredge-pipe-core" d="M370 360 C356 430 336 570 304 698"></path>
             </g>
             <path class="sea-bed-fill" transform="translate(0 28)" d="M0 600 C72 600 160 584 220 598 C252 608 280 690 302 690 C324 690 352 608 382 598 C416 586 448 590 480 600 V760 H0 Z"></path>
             <path class="sea-bed-line" transform="translate(0 28)" d="M0 600 C72 600 160 584 220 598 C252 608 280 690 302 690 C324 690 352 608 382 598 C416 586 448 590 480 600"></path>
-            <path class="sea-excavation-edge" transform="translate(0 28)" d="M220 598 C252 608 280 690 302 690 C324 690 352 608 382 598"></path>
             <path class="sea-dredge-intake" transform="translate(0 28)" d="M296 668 H312 L321 686 H287 Z"></path>
             <path class="sea-dredge-intake-mouth" transform="translate(0 28)" d="M287 686 H321"></path>
             <g class="sea-sand-flow">
               <circle r="3.2">
-                <animateMotion dur="1.6s" repeatCount="indefinite" path="M304 698 C336 558 356 410 370 328"></animateMotion>
+                <animateMotion dur="1.6s" repeatCount="indefinite" path="M304 698 C336 570 356 430 370 360"></animateMotion>
               </circle>
               <circle r="2.7">
-                <animateMotion dur="1.6s" begin="-0.2s" repeatCount="indefinite" path="M304 698 C336 558 356 410 370 328"></animateMotion>
+                <animateMotion dur="1.6s" begin="-0.2s" repeatCount="indefinite" path="M304 698 C336 570 356 430 370 360"></animateMotion>
               </circle>
               <circle r="2.2">
-                <animateMotion dur="1.6s" begin="-0.4s" repeatCount="indefinite" path="M304 698 C336 558 356 410 370 328"></animateMotion>
+                <animateMotion dur="1.6s" begin="-0.4s" repeatCount="indefinite" path="M304 698 C336 570 356 430 370 360"></animateMotion>
               </circle>
               <circle r="3">
-                <animateMotion dur="1.6s" begin="-0.6s" repeatCount="indefinite" path="M304 698 C336 558 356 410 370 328"></animateMotion>
+                <animateMotion dur="1.6s" begin="-0.6s" repeatCount="indefinite" path="M304 698 C336 570 356 430 370 360"></animateMotion>
               </circle>
               <circle r="2.4">
-                <animateMotion dur="1.6s" begin="-0.8s" repeatCount="indefinite" path="M304 698 C336 558 356 410 370 328"></animateMotion>
+                <animateMotion dur="1.6s" begin="-0.8s" repeatCount="indefinite" path="M304 698 C336 570 356 430 370 360"></animateMotion>
               </circle>
               <circle r="3.4">
-                <animateMotion dur="1.6s" begin="-1s" repeatCount="indefinite" path="M304 698 C336 558 356 410 370 328"></animateMotion>
+                <animateMotion dur="1.6s" begin="-1s" repeatCount="indefinite" path="M304 698 C336 570 356 430 370 360"></animateMotion>
               </circle>
               <circle r="2.1">
-                <animateMotion dur="1.6s" begin="-1.2s" repeatCount="indefinite" path="M304 698 C336 558 356 410 370 328"></animateMotion>
+                <animateMotion dur="1.6s" begin="-1.2s" repeatCount="indefinite" path="M304 698 C336 570 356 430 370 360"></animateMotion>
               </circle>
               <circle r="2.8">
-                <animateMotion dur="1.6s" begin="-1.4s" repeatCount="indefinite" path="M304 698 C336 558 356 410 370 328"></animateMotion>
+                <animateMotion dur="1.6s" begin="-1.4s" repeatCount="indefinite" path="M304 698 C336 570 356 430 370 360"></animateMotion>
               </circle>
             </g>
-            <g class="sea-cable-pair" transform="translate(0 28)">
-              <path class="sea-cable-glow" d="M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580">
-                <animate attributeName="d" dur="3.6s" repeatCount="indefinite" values="M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580;M0 580 C98 580 172 574 224 582 C252 592 282 652 302 652 C322 652 350 592 378 580 C410 572 444 576 480 580;M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580"></animate>
+            <g class="sea-cable-pair" transform="translate(0 60)">
+              <path class="sea-cable-glow" d="M0 580 C160 580 320 580 480 580">
+                <animate attributeName="d" dur="3.6s" repeatCount="indefinite" values="M0 580 C160 580 320 580 480 580;M0 580 C160 584 320 584 480 580;M0 580 C160 580 320 580 480 580"></animate>
               </path>
-              <path class="sea-cable-line" d="M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580">
-                <animate attributeName="d" dur="3.6s" repeatCount="indefinite" values="M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580;M0 580 C98 580 172 574 224 582 C252 592 282 652 302 652 C322 652 350 592 378 580 C410 572 444 576 480 580;M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580"></animate>
+              <path class="sea-cable-line" d="M0 580 C160 580 320 580 480 580">
+                <animate attributeName="d" dur="3.6s" repeatCount="indefinite" values="M0 580 C160 580 320 580 480 580;M0 580 C160 584 320 584 480 580;M0 580 C160 580 320 580 480 580"></animate>
               </path>
-              <path class="sea-cable-signal" d="M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580">
-                <animate attributeName="d" dur="3.6s" repeatCount="indefinite" values="M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580;M0 580 C98 580 172 574 224 582 C252 592 282 652 302 652 C322 652 350 592 378 580 C410 572 444 576 480 580;M0 580 C98 580 172 574 224 582 C252 590 282 642 302 642 C322 642 350 590 378 580 C410 572 444 576 480 580"></animate>
+              <path class="sea-cable-signal" d="M0 580 C160 580 320 580 480 580">
+                <animate attributeName="d" dur="3.6s" repeatCount="indefinite" values="M0 580 C160 580 320 580 480 580;M0 580 C160 584 320 584 480 580;M0 580 C160 580 320 580 480 580"></animate>
               </path>
             </g>
           </svg>
