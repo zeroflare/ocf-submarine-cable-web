@@ -1,0 +1,69 @@
+name: Deploy to resilience.ocf.tw
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-resilience
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        env:
+          SITE_ORIGIN: https://resilience.ocf.tw
+          SITE_BASE: /
+        run: npm run build
+
+      - name: Checkout ocftw/resilience.ocf.tw (dev)
+        uses: actions/checkout@v4
+        with:
+          repository: ocftw/resilience.ocf.tw
+          ref: dev
+          token: ${{ secrets.RESILIENCE_DEPLOY_TOKEN }}
+          path: dest
+
+      - name: Copy dist contents to dest root
+        run: |
+          # dist/ 結尾斜線：複製內容，不建立 dist 資料夾
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.gitmodules' \
+            --exclude='web' \
+            --exclude='CNAME' \
+            --exclude='LICENSE' \
+            --exclude='CITATION.cff' \
+            --exclude='README.md' \
+            --exclude='404.html' \
+            --exclude='robots.txt' \
+            --exclude='favicon.ico' \
+            dist/ dest/
+
+      - name: Commit and push
+        working-directory: dest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+            exit 0
+          fi
+          git commit -m "deploy site from ${{ github.repository }}@${{ github.sha }}"
+          git push origin HEAD:dev
