@@ -443,10 +443,15 @@ html.is-cover-preview #cover {
 }
 
 .panel.signal-panel {
-  top: 132px;
-  left: 5%;
-  transform: none;
   will-change: opacity;
+}
+
+@media (min-width: 801px) {
+  .panel.signal-panel {
+    top: 132px;
+    left: 5%;
+    transform: none;
+  }
 }
 
 .signal-panel--journey {
@@ -864,7 +869,6 @@ html.is-cover-preview #cover {
     var(--bg-alt);
   padding: 100px 6% 80px;
   box-shadow: none;
-  scroll-snap-align: start;
 }
 
 .portals-inner {
@@ -897,19 +901,20 @@ html.is-cover-preview #cover {
   letter-spacing: 0.02em;
 }
 
-.footer-nav {
+.footer-right {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px 20px;
+}
+
+.footer-github {
+  color: var(--cyan);
+  text-decoration: none;
   font-size: 13.5px;
 }
 
-.footer-nav a {
-  color: var(--cyan);
-  text-decoration: none;
-}
-
-.footer-nav a:hover,
+.footer-github:hover,
 .footer-org:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -1448,9 +1453,14 @@ html:has(.article-modal-page) body {
 }
 
 .sea-intro-panel {
-  top: 132px;
-  transform: none;
   max-width: 430px;
+}
+
+@media (min-width: 801px) {
+  .sea-intro-panel {
+    top: 132px;
+    transform: none;
+  }
 }
 
 .sea-hazard-stage {
@@ -2292,6 +2302,10 @@ html:has(.article-modal-page) body {
    specificity as the max-width:800px block earlier in this file and
    would otherwise win the cascade by source order alone. */
 @media (max-width: 800px) {
+  .portals-grid {
+    grid-template-columns: 1fr;
+  }
+
   .portals-grid-row {
     grid-template-columns: 1fr;
   }
@@ -2389,26 +2403,36 @@ html:has(.article-modal-page) body {
     white-space: normal;
   }
 
+  .sea-hazard-stage {
+    background:
+      linear-gradient(180deg, var(--illus-sky-2) 0 30%, var(--illus-sea-2) 30% 100%);
+  }
+
   .sea-vessel--fishing {
-    top: 34.2%;
-    width: 60%;
+    top: 19%;
+    width: 150px;
   }
 
   .sea-vessel--ship,
   .sea-ship-stern-fix {
-    top: 34.7%;
-    width: 80%;
+    top: 20%;
+    width: 210px;
   }
 
   .sea-vessel--dredger {
-    top: 34.7%;
-    width: 86%;
+    top: 20%;
+    width: 220px;
+  }
+
+  .sea-hazard-environment {
+    transform-origin: 0 0;
+    transform: translateY(-6.6px) scaleY(0.664);
   }
 
   .sea-tool--trawl {
-    top: auto;
-    bottom: 15.3%;
-    width: 84%;
+    top: 50%;
+    bottom: auto;
+    width: 140px;
   }
 
   .sea-hazard--trawl .sea-tool-line {
@@ -2416,9 +2440,9 @@ html:has(.article-modal-page) body {
   }
 
   .sea-tool--anchor {
-    top: 58.4%;
+    top: 38%;
     left: 54%;
-    width: 34%;
+    width: 65px;
   }
 
   .sea-hazard--anchor .sea-cable-glow,
