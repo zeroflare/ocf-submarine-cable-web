@@ -49,7 +49,7 @@
 
 html {
   scroll-behavior: auto;
-  scroll-snap-type: y proximity;
+  scroll-snap-type: none;
 }
 
 html,
@@ -228,9 +228,10 @@ button {
 /* ── Cover ── */
 .cover {
   position: relative;
+  height: 100vh;
   height: 100dvh;
-  min-height: 100dvh;
-  scroll-snap-align: start;
+  min-height: 100svh;
+  scroll-snap-align: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -440,8 +441,9 @@ html.is-cover-preview main > :not(#cover) {
 }
 
 html.is-cover-preview #cover {
+  height: 100vh;
   height: 100dvh;
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 .signal-journey .intro-stage {
@@ -518,14 +520,17 @@ html.is-cover-preview #cover {
 /* ── Scenes ── */
 .scene {
   height: calc(var(--scene-vh, 100) * 1vh);
+  height: calc(var(--scene-vh, 100) * 1svh);
   position: relative;
-  scroll-snap-align: start;
+  scroll-snap-align: none;
 }
 
 .scene-sticky {
   position: sticky;
   top: 0;
+  height: 100vh;
   height: 100dvh;
+  min-height: 100svh;
   overflow: hidden;
   --p: 0;
 }
@@ -908,7 +913,8 @@ html.is-cover-preview #cover {
 .closing-screen {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: 100vh;
+  min-height: 100svh;
 }
 
 .portals {
@@ -1139,7 +1145,7 @@ html:has(.article-modal-page) body {
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 800px) {
   .article-dialog,
   .article-dialog--page {
     width: 100vw;
@@ -1290,7 +1296,7 @@ html:has(.article-modal-page) body {
   margin: 2em 0;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 800px) {
   .site-nav {
     padding: 0 14px 0 18px;
   }
@@ -1329,7 +1335,7 @@ html:has(.article-modal-page) body {
   }
 }
 
-@media (min-width: 1081px) {
+@media (min-width: 801px) {
   .site-nav-links {
     order: 2;
     margin-left: auto;
@@ -1516,6 +1522,11 @@ html:has(.article-modal-page) body {
 }
 
 .sea-hazard-stage {
+  --sea-slide-count: 3;
+  --sea-track-width: 264%;
+  --sea-frame-width: 600px;
+  --sea-frame-shift: min(250px, 19vw);
+  --sea-track-tail: 12vw;
   padding-top: var(--header-h);
   background:
     linear-gradient(180deg, var(--illus-sky-2) 0 44.2%, var(--illus-sea-2) 44.2% 100%);
@@ -1534,7 +1545,7 @@ html:has(.article-modal-page) body {
 
 .sea-hazard-grid {
   display: flex;
-  width: 264%;
+  width: var(--sea-track-width);
   height: 100%;
   will-change: transform;
 }
@@ -1542,7 +1553,7 @@ html:has(.article-modal-page) body {
 .sea-hazard-slide {
   position: relative;
   display: flex;
-  flex: 0 0 calc(100% / 3);
+  flex: 0 0 calc(100% / var(--sea-slide-count));
   min-width: 0;
   height: 100%;
   justify-content: center;
@@ -1552,27 +1563,27 @@ html:has(.article-modal-page) body {
   position: absolute;
   top: 0;
   z-index: 0;
-  width: max(0px, calc((100% - 600px) / 2));
+  width: max(0px, calc((100% - var(--sea-frame-width)) / 2));
   height: 100%;
   max-width: none;
 }
 
 .sea-hazard-margin--left {
   left: 0;
-  width: max(2px, calc((100% - 600px) / 2 + min(250px, 19vw) + 2px));
+  width: max(2px, calc((100% - var(--sea-frame-width)) / 2 + var(--sea-frame-shift) + 2px));
 }
 
 .sea-hazard-margin--right {
   right: 0;
-  width: max(4px, calc((100% - 600px) / 2 - min(250px, 19vw) + 4px));
+  width: max(4px, calc((100% - var(--sea-frame-width)) / 2 - var(--sea-frame-shift) + 4px));
 }
 
 /* The shortened desktop slide spacing leaves 12vw beyond the final slide.
    Extend the last seabed strip into that space so the scene never exposes
    the water background at the end of the horizontal journey. */
 .sea-hazard-slide:last-child .sea-hazard-margin--right {
-  right: -12vw;
-  width: max(calc(12vw + 4px), calc((100% - 600px) / 2 - min(250px, 19vw) + 12vw + 4px));
+  right: calc(-1 * var(--sea-track-tail));
+  width: max(calc(var(--sea-track-tail) + 4px), calc((100% - var(--sea-frame-width)) / 2 - var(--sea-frame-shift) + var(--sea-track-tail) + 4px));
 }
 
 .sea-hazard-frame {
@@ -1580,9 +1591,9 @@ html:has(.article-modal-page) body {
   z-index: 1;
   display: flex;
   height: 100%;
-  width: 600px;
+  width: var(--sea-frame-width);
   max-width: 100%;
-  transform: translateX(min(250px, 19vw));
+  transform: translateX(var(--sea-frame-shift));
 }
 
 .sea-hazard-transition {
@@ -2148,7 +2159,8 @@ html:has(.article-modal-page) body {
   --landing-pin-opacity: 1;
   --domestic-pin-opacity: 0;
   --overseas-pin-opacity: 0;
-  height: 300dvh;
+  height: 300vh;
+  height: 300svh;
   scroll-snap-align: none;
 }
 
@@ -2354,6 +2366,13 @@ html:has(.article-modal-page) body {
    specificity as the max-width:800px block earlier in this file and
    would otherwise win the cascade by source order alone. */
 @media (max-width: 800px) {
+  .sea-hazard-stage {
+    --sea-track-width: 300%;
+    --sea-frame-width: 100%;
+    --sea-frame-shift: 0px;
+    --sea-track-tail: 0px;
+  }
+
   .portals-grid {
     grid-template-columns: 1fr;
   }
@@ -2378,7 +2397,8 @@ html:has(.article-modal-page) body {
   }
 
   .network-story {
-    height: 280dvh;
+    height: 280vh;
+    height: 280svh;
   }
 
   .network-panel {
@@ -2418,15 +2438,6 @@ html:has(.article-modal-page) body {
 
   .sea-hazard-slide {
     align-items: stretch;
-  }
-
-  .sea-hazard-grid {
-    width: 300%;
-  }
-
-  .sea-hazard-frame {
-    width: 100%;
-    transform: none;
   }
 
   .sea-hazard {
@@ -2548,7 +2559,8 @@ html:has(.article-modal-page) body {
 
 @media (prefers-reduced-motion: reduce) {
   .network-story {
-    height: 200dvh;
+    height: 200vh;
+    height: 200svh;
   }
 
   .network-panel,

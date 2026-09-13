@@ -1,3 +1,35 @@
+const SITE_MOBILE_QUERY = '(max-width: 800px)';
+const siteViewportListeners = new Set();
+let siteViewportRaf = 0;
+
+function getSiteViewportHeight() {
+  return window.visualViewport?.height
+    || document.documentElement.clientHeight
+    || window.innerHeight
+    || 1;
+}
+
+function requestSiteViewportUpdate() {
+  cancelAnimationFrame(siteViewportRaf);
+  siteViewportRaf = requestAnimationFrame(() => {
+    siteViewportRaf = 0;
+    document.documentElement.style.setProperty('--viewport-height', `${getSiteViewportHeight()}px`);
+    siteViewportListeners.forEach((listener) => listener());
+  });
+}
+
+window.getSiteViewportHeight = getSiteViewportHeight;
+window.addSiteViewportListener = (listener) => {
+  siteViewportListeners.add(listener);
+  return () => siteViewportListeners.delete(listener);
+};
+
+window.addEventListener('resize', requestSiteViewportUpdate, { passive: true });
+window.addEventListener('orientationchange', requestSiteViewportUpdate, { passive: true });
+window.visualViewport?.addEventListener('resize', requestSiteViewportUpdate, { passive: true });
+document.fonts?.ready.then(requestSiteViewportUpdate);
+requestSiteViewportUpdate();
+
 function initNav() {
   const nav = document.getElementById('site-nav');
   const btn = nav?.querySelector('.site-nav-toggle');
@@ -36,8 +68,8 @@ function syncChrome() {
   const articles = document.getElementById('articles');
   const portals = document.getElementById('portals');
   let navKey = 'intro';
-  if (portals && portals.getBoundingClientRect().top < window.innerHeight * 0.42) navKey = 'portals';
-  else if (articles && articles.getBoundingClientRect().top < window.innerHeight * 0.42) navKey = 'articles';
+  if (portals && portals.getBoundingClientRect().top < getSiteViewportHeight() * 0.42) navKey = 'portals';
+  else if (articles && articles.getBoundingClientRect().top < getSiteViewportHeight() * 0.42) navKey = 'articles';
   document.querySelectorAll('.site-nav-links [data-nav]').forEach((link) => {
     const on = link.dataset.nav === navKey;
     link.classList.toggle('is-active', on);
@@ -50,7 +82,7 @@ function initScrollStory() {
   if (!document.querySelector('.scene[data-scene]')) return;
 
   window.addEventListener('scroll', syncChrome, { passive: true });
-  window.addEventListener('resize', syncChrome);
+  window.addSiteViewportListener(syncChrome);
   syncChrome();
 }
 
@@ -203,7 +235,7 @@ function initSignalJourney() {
   const render = () => {
     raf = 0;
     const rect = intro.getBoundingClientRect();
-    const travel = Math.max(1, intro.offsetHeight - window.innerHeight);
+    const travel = Math.max(1, intro.offsetHeight - getSiteViewportHeight());
     const progress = reduceMotion.matches ? 1 : clamp01(-rect.top / travel);
     const pairMove = smooth(range(progress, 0.08, 0.28));
     const phoneFade = smooth(range(progress, 0.2, 0.29));
@@ -211,7 +243,7 @@ function initSignalJourney() {
     const firstStationVisible = smooth(range(progress, 0.24, 0.34));
     const landscapeReveal = smooth(range(progress, 0.24, 0.34));
     const cameraMove = smooth(range(progress, 0.28, 0.92));
-    const isSmallScreen = window.innerWidth <= 800;
+    const isSmallScreen = window.matchMedia(SITE_MOBILE_QUERY).matches;
     const pairScale = mix(1, 0.5, pairMove);
     const pairX = mix(0, -500, pairMove);
     const firstStationScale = pairScale * 2;
@@ -260,7 +292,7 @@ function initSignalJourney() {
 
   render();
   window.addEventListener('scroll', requestRender, { passive: true });
-  window.addEventListener('resize', requestRender);
+  window.addSiteViewportListener(requestRender);
   reduceMotion.addEventListener?.('change', requestRender);
 }
 
@@ -274,18 +306,31 @@ function initSeaHazardStory() {
 
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
   const range = (value, start, end) => clamp01((value - start) / (end - start));
+  const mix = (from, to, progress) => from + (to - from) * progress;
+  let slideOffsets = [];
   let raf = 0;
+
+  const measureSlides = () => {
+    const origin = slides[0].offsetLeft;
+    slideOffsets = slides.map((slide) => slide.offsetLeft - origin);
+  };
+
+  const offsetAt = (progress) => {
+    const lowerIndex = Math.floor(progress);
+    const upperIndex = Math.min(slides.length - 1, Math.ceil(progress));
+    const localProgress = progress - lowerIndex;
+    return mix(slideOffsets[lowerIndex] ?? 0, slideOffsets[upperIndex] ?? 0, localProgress);
+  };
 
   const render = () => {
     raf = 0;
     const rect = scene.getBoundingClientRect();
-    const travel = Math.max(1, scene.offsetHeight - window.innerHeight);
+    const travel = Math.max(1, scene.offsetHeight - getSiteViewportHeight());
     const progress = clamp01(-rect.top / travel);
     const slideProgress = reduceMotion.matches
       ? Math.round(progress * 2)
       : range(progress, 0.08, 0.86) * 2;
-    const slideWidth = slides[0].getBoundingClientRect().width;
-    const x = -slideProgress * slideWidth;
+    const x = -offsetAt(slideProgress);
 
     track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`;
     scene.dataset.seaPhase = slideProgress < 0.5
@@ -304,9 +349,21 @@ function initSeaHazardStory() {
     if (!raf) raf = requestAnimationFrame(render);
   };
 
+  const remeasureAndRender = () => {
+    measureSlides();
+    requestRender();
+  };
+
+  measureSlides();
   render();
   window.addEventListener('scroll', requestRender, { passive: true });
-  window.addEventListener('resize', requestRender);
+  window.addSiteViewportListener(remeasureAndRender);
+  document.fonts?.ready.then(remeasureAndRender);
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(remeasureAndRender);
+    observer.observe(track);
+    slides.forEach((slide) => observer.observe(slide));
+  }
   reduceMotion.addEventListener?.('change', requestRender);
 }
 

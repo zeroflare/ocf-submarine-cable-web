@@ -11,6 +11,23 @@ const OVERSEAS_CABLE = '#8aa7ff';
 const DEFAULT = { lng: 125.57498, lat: 23.70176, z: 6 };
 const COVER_TAIWAN_LEFT_EDGE = [119.95, 23.72];
 const COVER_TAIWAN_MIN_X = 24;
+const MAP_MOBILE_QUERY = '(max-width: 800px)';
+
+function currentViewportHeight() {
+  return window.getSiteViewportHeight?.()
+    || window.visualViewport?.height
+    || document.documentElement.clientHeight
+    || window.innerHeight
+    || 1;
+}
+
+function addMapViewportListener(listener) {
+  if (window.addSiteViewportListener) return window.addSiteViewportListener(listener);
+  window.addEventListener('resize', listener, { passive: true });
+  window.addEventListener('orientationchange', listener, { passive: true });
+  window.visualViewport?.addEventListener('resize', listener, { passive: true });
+  return () => {};
+}
 
 const MAP_FALLBACK_COPY = {
   cover: '互動地圖暫時無法顯示。臺灣透過海底電纜連接世界各地。',
@@ -317,7 +334,7 @@ function initCoverMap() {
   map.on('load', paint);
 
   let resizeRaf = 0;
-  window.addEventListener('resize', () => {
+  addMapViewportListener(() => {
     cancelAnimationFrame(resizeRaf);
     resizeRaf = requestAnimationFrame(() => {
       map.resize();
@@ -333,7 +350,7 @@ async function loadLandings() {
 }
 
 function fitLandingMap(map) {
-  const pad = window.matchMedia('(max-width: 800px)').matches
+  const pad = window.matchMedia(MAP_MOBILE_QUERY).matches
     ? { top: 64, bottom: 400, left: 20, right: 20 }
     : { top: 80, bottom: 72, left: 460, right: 88 };
   map.fitBounds(
@@ -826,7 +843,7 @@ function mix(from, to, progress) {
 }
 
 function landingCameraFor(map) {
-  const mobile = window.matchMedia('(max-width: 800px)').matches;
+  const mobile = window.matchMedia(MAP_MOBILE_QUERY).matches;
   const padding = mobile
     ? { top: 64, bottom: 360, left: 20, right: 20 }
     : { top: 80, bottom: 72, left: 460, right: 88 };
@@ -845,7 +862,7 @@ function landingCameraFor(map) {
 }
 
 function globalCameraFor(map, destinations) {
-  const mobile = window.matchMedia('(max-width: 800px)').matches;
+  const mobile = window.matchMedia(MAP_MOBILE_QUERY).matches;
   const padding = mobile
     ? { top: 64, bottom: 310, left: 24, right: 24 }
     : { top: 72, bottom: 72, left: 64, right: 64 };
@@ -928,7 +945,7 @@ async function initNetworkStoryMap() {
 
     const scrollProgress = () => {
       const rect = scene.getBoundingClientRect();
-      const travel = Math.max(1, scene.offsetHeight - window.innerHeight);
+      const travel = Math.max(1, scene.offsetHeight - currentViewportHeight());
       return clamp01(-rect.top / travel);
     };
 
@@ -1015,7 +1032,7 @@ async function initNetworkStoryMap() {
     render();
 
     window.addEventListener('scroll', requestRender, { passive: true });
-    window.addEventListener('resize', () => {
+    addMapViewportListener(() => {
       updateCameras();
       requestRender();
     });
