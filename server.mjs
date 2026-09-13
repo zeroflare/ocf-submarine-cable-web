@@ -6,10 +6,12 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const SRC = path.join(ROOT, 'src');
 const DIST = path.join(ROOT, 'dist');
+const STATIC_ROOT = fs.existsSync(path.join(ROOT, 'assets')) ? ROOT : DIST;
+const DATA_ROOT = STATIC_ROOT === ROOT ? path.join(ROOT, 'data') : SRC;
 const PORT = Number(process.env.PORT || 3456);
 const HOST = process.env.HOST || '127.0.0.1';
-const TAIWAN_VIEW = path.join(SRC, 'taiwan-view.json');
-const DESTINATIONS = path.join(SRC, 'destinations.json');
+const TAIWAN_VIEW = path.join(DATA_ROOT, 'taiwan-view.json');
+const DESTINATIONS = path.join(DATA_ROOT, 'destinations.json');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -76,8 +78,8 @@ function parseDestinations(raw) {
 function safeFile(urlPath) {
   let rel = decodeURIComponent(urlPath).replace(/^\//, '');
   if (!rel || rel.endsWith('/')) rel = path.join(rel, 'index.html');
-  const file = path.normalize(path.join(DIST, rel));
-  if (!file.startsWith(DIST)) return null;
+  const file = path.normalize(path.join(STATIC_ROOT, rel));
+  if (!file.startsWith(STATIC_ROOT)) return null;
   return file;
 }
 
@@ -180,8 +182,10 @@ function watchSources() {
   }
 }
 
-rebuild('start').catch((err) => console.error(err));
-watchSources();
+if (STATIC_ROOT === DIST) {
+  rebuild('start').catch((err) => console.error(err));
+  watchSources();
+}
 
 server.listen(PORT, HOST, () => {
   console.log(`site → http://${HOST}:${PORT}/`);

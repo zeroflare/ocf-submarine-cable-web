@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>頁面不存在 - 網路韌性入口網 | 財團法人開放文化基金會 (OCF)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <noscript>
+    此網站的 404 轉向功能需要啟用 JavaScript。
+  </noscript>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 2rem; line-height: 1.6; }
+    code { background: #f3f3f3; padding: 0.2em 0.4em; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>頁面不存在（404）</h1>
+  <p>正在嘗試將您轉向正確的頁面…</p>
+  <p>如果沒有自動轉向，請回到 <a href="/web">網站韌性檢測專案首頁</a>。</p>
+
+  <script>
+    (function () {
+      // 目前完整 URL
+      var loc = window.location;
+      var origin = loc.origin || (loc.protocol + '//' + loc.host);
+      var path = loc.pathname || '/';
+      var search = loc.search || '';
+      var hash = loc.hash || '';
+
+      // 只處理 /web/... 這種路徑，其餘就留在 404 頁
+      // 例如：/web/foo/bar  ->  /web/?url=foo/bar
+      var prefix = '/web/';
+      if (!path.startsWith(prefix)) {
+        return;
+      }
+
+      // 取出 /web/ 後面的部分當成 {xxx}
+      var rest = path.slice(prefix.length); // 去掉 "/web/"
+
+      // 如果剛好是 /web/ 自己，就不轉向（改交給 /web 的 index 處理）
+      if (rest === '' || rest === '/') {
+        window.location.replace('/web' + search + hash);
+        return;
+      }
+
+      var params = new URLSearchParams(search.replace(/^\?/, ''));
+
+      function stripTrailingSlash(value) {
+        return value.replace(/\/+$/, '');
+      }
+
+      // 英文首頁：/web/en → /web/en/
+      if (rest === 'en' || rest === 'en/') {
+        window.location.replace('/web/en/' + search + hash);
+        return;
+      }
+
+      // 未知子站英文路徑：/web/{domain}/en → /web/en/?url={domain}
+      var enSuffixMatch = rest.match(/^(.+)\/en\/?$/);
+      if (enSuffixMatch) {
+        params.set('url', stripTrailingSlash(enSuffixMatch[1]));
+        var enUrl = origin + '/web/en/?' + params.toString() + hash;
+        window.location.replace(enUrl);
+        return;
+      }
+
+      // 未知子站繁中：/web/{domain} → /web/?url={domain}
+      params.set('url', stripTrailingSlash(rest));
+
+      var newUrl = origin + '/web/?' + params.toString() + hash;
+      window.location.replace(newUrl);
+    })();
+  </script>
+</body>
+</html>

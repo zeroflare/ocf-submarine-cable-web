@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>海纜受損後，哪些手機服務可能失效？ — 網路韌性入口網 | 財團法人開放文化基金會 (OCF)</title>
+  <meta name="description" content="一支 App 不是單一系統：資料、地圖、通知、付款可能分屬不同服務。境外連線受損時，App 開得起來，不代表報案、查詢、訂票或付款一定做得完。" />
+  <link rel="canonical" href="https://resilience.ocf.tw/articles/02-apps-when-cables-break/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:title" content="海纜受損後，哪些手機服務可能失效？ — 網路韌性入口網 | 財團法人開放文化基金會 (OCF)" />
+  <meta property="og:description" content="一支 App 不是單一系統：資料、地圖、通知、付款可能分屬不同服務。境外連線受損時，App 開得起來，不代表報案、查詢、訂票或付款一定做得完。" />
+  <meta property="og:url" content="https://resilience.ocf.tw/articles/02-apps-when-cables-break/" />
+  <meta property="article:published_time" content="2026-09-08" />
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  
+</head>
+<body class="article-standalone" data-home="../../">
+  <a class="skip-link" href="#main">跳到主要內容</a>
+  <header class="site-nav" id="site-nav">
+    <a class="site-nav-brand" href="../../"><img class="site-nav-brand-logo" src="https://ocf.tw/mediakit/icon_white.png" alt="OCF 開放文化基金會">網路韌性專案</a>
+    <button class="site-nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav-menu">
+      <span class="visually-hidden">開啟選單</span>
+      <span class="site-nav-burger" aria-hidden="true"></span>
+    </button>
+    <nav id="site-nav-menu" class="site-nav-links" aria-label="主要">
+      <a href="../../#cover" data-nav="cover"> 網路韌性專案 </a>
+      <a href="../../#intro" data-nav="intro"> 海底電纜是什麼 </a>
+      <a href="../../#articles" data-nav="articles" class="is-active" aria-current="page"> 數位韌性報導 </a>
+      <a href="../../#portals" data-nav="portals"> 海纜韌性工具 </a>
+    </nav>
+  </header>
+  <main id="main" class="article-modal-page">
+    <a class="article-modal-page-backdrop" href="../../#articles" tabindex="-1" aria-label="關閉文章"></a>
+    <div class="article-dialog article-dialog--page">
+      <div class="article-dialog-bar">
+        <a class="article-dialog-close" href="../../#articles" aria-label="關閉文章"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L10.94 12l-5.72 5.72a.75.75 0 1 0 1.06 1.06L12 13.06l5.72 5.72a.75.75 0 1 0 1.06-1.06L13.06 12l5.72-5.72a.75.75 0 0 0-1.06-1.06L12 10.94 6.28 5.22Z"/></svg></a>
+      </div>
+      <div class="article-dialog-scroll">
+        <article class="article-wrap article-wrap--modal">
+      <h1>海纜受損後，哪些手機服務可能失效？</h1>
+      <p class="article-desc">一支 App 不是單一系統：資料、地圖、通知、付款可能分屬不同服務。境外連線受損時，App 開得起來，不代表報案、查詢、訂票或付款一定做得完。</p>
+      <p class="article-meta">2026年9月8日</p>
+      <nav class="article-toc" aria-label="文章目錄">
+        <p class="article-toc-title">目錄</p>
+        <ol class="article-toc-list">
+          <li><a href="#海纜受損的話可能會出現的服務斷點">海纜受損的話可能會出現的服務斷點</a></li>
+          <li><a href="#網頁與-APP-境外連線檢測">網頁與 APP 境外連線檢測</a></li>
+          <li><a href="#實測-SRTT-模擬緊急情境資訊查詢">實測 SRTT 模擬緊急情境資訊查詢</a></li>
+          <li><a href="#當通訊受損">當通訊受損</a></li>
+        </ol>
+      </nav>
+      <div class="prose">
+        <p><em>文／李又如</em></p>
+<p>8 月 13 日下午 2 點半，民眾手機仍顯示行動網路訊號，但感受到的服務卻大不相同。<a href="https://news.pts.org.tw/article/822276">公視記者</a>在台北車站實測下載速度只有 0.04，也採訪到民眾說「Line 打電話到一半突然沒有聲音」、「Youtube 卡卡的，連廣告都跑不太出來」。</p>
+<p>這是臺灣首次把行動網路降速納入城鎮韌性（防空）演習。中部與北部共 14 個縣市分兩天實施，每次 30 分鐘。政府事前說明：演習不是全面斷網，語音、簡訊與文字傳輸維持運作，影音串流、視訊通話、行動支付及雲端同步等需要較多流量的服務，則可能受到影響。</p>
+<p>參與政府韌性準備工作的大明（化名）提到，臺灣颱風地震多，災後必然都有通訊中斷、電力中斷的問題，在防災視角來看，這並不是新議題。而此次納入防空演習，是要回應區域風險上升時，可能會有被攻擊的狀況，所以才做小部分的測試。</p>
+<p>這 30 分鐘，讓一個原本抽象的問題具體起來：手機有訊號，不代表每一項服務都能使用；App 開得起來，也不代表訂票、付款、聯絡或查詢一定做得完。</p>
+<p>演習是政府刻意限縮頻寬，但呼應到一個可能的風險情境——臺灣是個海島，對外的網路連線完全依賴海底電纜，有任何一條受損、斷線，都會影響整體服務的總流量。兩者指向的是同個問題：當可用的網路資源減少，會發生什麼事？</p>
+<h2 id="海纜受損的話可能會出現的服務斷點">海纜受損的話可能會出現的服務斷點</h2>
+<p>「通訊不會是全有全無。」大明提到，不同路徑能承載的使用量也不同；受損可能是完全中斷，也可能只是容量下降。單一路徑受影響，也會有其他替代通訊如無線電、衛星補上。</p>
+<p>不同於曾經因海纜斷裂而對外幾乎失聯的離島馬祖，臺灣本島的網路服務，除了對外連接的海纜外，還有國內電纜。但網路服務產品並不是一個完整封閉的系統，如網頁、APP 的不同區塊，主要資料、地圖、通知、登入、安全檢查、付款、外部頁面等元素，可能分別由不同服務提供。開放文化基金會的研究就發現，即使主要系統設在臺灣，使用者的操作流程，仍可能因為地圖載不出來、無法重新登入、收不到通知，或交易確認送不出去，停在流程中途。</p>
+<h2 id="網頁與-APP-境外連線檢測">網頁與 APP 境外連線檢測</h2>
+<p>開放文化基金會曾對常用網站做了依賴測試，在〈<a href="https://resilience.ocf.tw/web/report">海纜斷光會怎樣？認識臺灣的國際網路中斷風險</a>〉報告中，顯示境外依賴相當普遍：2,179 個完成測試的網站中，近 40% 在開啟時取用境外資源，有高度失效風險；近 50% 雖然沒有直接連向境外資源，但使用跨國雲端業者設在臺灣的節點，其控制介面、來源架構、身分驗證或快取持續能力，仍可能依賴境外系統，實際可用性並無法確定。</p>
+<p>開放文化基金會也開發 <a href="https://srtt.ocf.tw/">SRTT 檢測工具</a>，並提供 <a href="https://zeroflare.github.io/ocf-srtt-app-report/#/%E7%A7%91%E6%99%AE%E5%A0%B1%E5%B0%8E-%E6%B5%B7%E7%BA%9C%E6%96%B7%E4%BA%86%E9%82%84%E8%83%BD%E7%94%A8%E5%97%8E">10 篇深度測試報告</a>，協助使用者暸解手機的 APP 會連到哪些網域、是否經過境外伺服器。測試顯示，行動自然人憑證、警政服務、健保快易通、行動郵局、台鐵 e 訂通與臺灣行動支付等六款政府或公股服務，關鍵資料與交易在測試中，都連往政府專網或臺灣電信機房，未觀察到必須出境的情形；但仍有部分附加功能（例如打詐儀表板）使用境外服務。</p>
+<p>民間 APP 中，Google 地圖、ChatGPT 及智生活的連線落在臺灣節點，但真正提供運算、儲存或控制功能的系統，卻未必位於臺灣，無法依此推定斷纜後仍可使用。LINE 的通訊核心位於日本，蝦皮購物的下單與付款系統位於新加坡，兩者對跨境連線的依賴更加直接。（詳見分析報告：〈<a href="https://zeroflare.github.io/ocf-srtt-app-report/#/%E7%A7%91%E6%99%AE%E5%A0%B1%E5%B0%8E-%E6%B5%B7%E7%BA%9C%E6%96%B7%E4%BA%86%E9%82%84%E8%83%BD%E7%94%A8%E5%97%8E">海纜斷了，你手機裡的 App 還能用嗎？</a>〉）</p>
+<h2 id="實測-SRTT-模擬緊急情境資訊查詢">實測 SRTT 模擬緊急情境資訊查詢</h2>
+<p>我們也實際使用 SRTT 工具，檢測幾項貼近民生服務的 APP，如「消防防災 e 點通」、「行動水情」、「環境即時通」、「臺灣電力」、「臺灣自來水」、「T-EX 行動購票」、「YouBike」、「監理服務」等，操作過程都沒有出現「境外流量」，但共通點是，主要功能之外仍會同時連接境外服務。</p>
+<p><img src="../../images/02-image1.png" alt=""><br>設定後在 SRTT 網站點選開始分析，同時在手機上操作 APP，就能看到手機在執行這些動作時，流量經過哪些國家。</p>
+<p>例如許多 APP 會串接地圖，讓使用者可以快速查找在自己身邊的服務，除了顯示地圖本身，使用定位、或導航功能時，就會連接到 Google Map 服務。「消防防災 e 點通」是少數有離線地圖的服務，也串接不同圖層，可以方便查詢避難所、醫療院所等資訊，但離線地圖資源需要先下載，使用者需要事先準備。</p>
+<div class="flourish-embed flourish-table" data-src="visualisation/30079901"><iframe src="https://flo.uri.sh/visualisation/30079901/embed" title="互動圖表" loading="lazy" allowfullscreen></iframe></div>
+
+<p>有些 APP 啟用時會連線至 Firebase 等外部服務，以提供推播、遠端設定或使用分析；也有些 APP 將 Facebook 頁面或官方網站嵌入介面。若這些連線中斷，受影響的可能只是通知或外部內容，也可能波及重要功能，必須視服務在 App 中扮演的角色而定。</p>
+<p>如開放文化基金會的<a href="https://zeroflare.github.io/ocf-srtt-app-report">測試報告</a>提到的，相同的外部服務在不同 APP 中可能有不同用途。例如行動自然人憑證使用 Firebase 處理推播與使用分析，但身分驗證及簽章仍連往政府網路；智生活則將 Firebase 用於即時資料、遠端設定與推播，不能只憑網域或連線國家判斷核心系統的位置或斷線後的影響。</p>
+<p>SRTT 與報告的深度分析能呈現 APP 曾連線的網域及部分功能無法模擬國際連線實際中斷的狀況，這裡提及的「可能斷點」不代表必然的錯誤，而是我們可以思考的預先準備：這些我們慣常依賴使用的服務，如果在緊急情況下失效，能不能馬上找到替代方案？</p>
+<h2 id="當通訊受損">當通訊受損</h2>
+<p>政府會優先把有限的通訊能力保留給指揮和救災單位，民眾只能使用有限的流量。綜整這些測試情境，是為了在危急時刻，確保自身得知最新消息、以及傳遞消息的能力。這也是行動網路降速演習的目的。</p>
+<p>大明指出，以單純的通訊受損情況，他會鼓勵民眾這樣思考與準備：先想像在這段期間內必須處理的急迫狀況。例如家裡有長輩有突發狀況需要醫療服務，那就得確保在通訊中斷時，你還是可以找到這樣的服務，例如可以預先調查家裡附近的醫療資源等等。</p>
+<p>大明指出，因應實際發生的情況不同，應變也有差異。以天災為例，大部分持續時間不會非常久，政府體系也會持續運作，這時通訊的目的是為了回報狀況，「過去我們也有在救災時遇過，因為民眾手機打不通，沒辦法報案。雖然警察內部通訊正常，但因為民眾報案的電話打不進來，你不知道實際上發生什麼事。那我們就會提醒民眾，或許有能力的話，就直接到消防局、警察局、派出所回報。」</p>
+<p>「如果時間再拉長一點到 24 小時或 72 小時以上，你會預期民眾大概沒有辦法自己準備這麼久的物資，如何確保生活需求，就是關鍵。」大明提到，政府也應該預期，屆時需要在某些地方提供民生必需服務與支援，還有如何讓民眾知道這些資訊。</p>
+<p>他指出，如果無法傳遞資訊、或事先沒有與民眾約定，可以在民眾本來就常常出沒的位置、或是本來就會習慣性尋求協助的地點，提供這些資訊，因為除非民眾失去行動能力，不然他還是會出門去設法找到他需要的東西，這時候就要把握機會傳遞資訊。不要讓他拿了物資就走，要順便跟他說目前有哪些機制、服務在運作，可以在哪裡找到幫助。</p>
+<p>至於衝突情境，大明認為應變目的也會不同。通訊是聯繫政府、救援單位或家人，並協調接下來行動的手段；最急迫的事態下可能是回到住所、確認彼此安全。他說：「維持通訊當然是一件事情，可是問題的核心都是怎麼保護自己、或是你想保護的對象。」</p>
+
+      </div>
+    </article>
+      </div>
+    </div>
+  </main>
+  <script src="../../assets/app.js"></script>
+</body>
+</html>

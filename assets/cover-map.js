@@ -1,0 +1,957 @@
+const STYLE_DARK = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+
+function mapStyleUrl() {
+  return STYLE_DARK;
+}
+
+const CABLE_COLOR = '#66dff1';
+const GOLD_CABLE = '#f4c96c';
+const DOMESTIC_CABLE = '#54e3c2';
+const OVERSEAS_CABLE = '#8aa7ff';
+const DEFAULT = { lng: 125.57498, lat: 23.70176, z: 6 };
+const COVER_TAIWAN_LEFT_EDGE = [119.95, 23.72];
+const COVER_TAIWAN_MIN_X = 24;
+
+function coverCableColor() {
+  return CABLE_COLOR;
+}
+
+function restyleBaseMap(map, { useSitePalette = false } = {}) {
+  try {
+    const inlandWater = ['lake', 'pond', 'reservoir', 'basin', 'river', 'canal', 'ditch', 'stream', 'drain', 'swamp', 'wetland'];
+    for (const layer of map.getStyle().layers ?? []) {
+      const id = layer.id;
+      const hide =
+        layer.type === 'symbol' ||
+        id === 'boundary_county' ||
+        id === 'boundary_state' ||
+        id === 'waterway' ||
+        id.startsWith('road_') ||
+        id.startsWith('tunnel_') ||
+        id.startsWith('bridge_') ||
+        id.startsWith('rail') ||
+        id.startsWith('aeroway');
+      if (hide) {
+        map.setLayoutProperty(id, 'visibility', 'none');
+      }
+    }
+    const oceanOnly = ['all', ['==', '$type', 'Polygon'], ['!in', 'class', ...inlandWater]];
+    if (map.getLayer('water')) map.setFilter('water', oceanOnly);
+    if (map.getLayer('water_shadow')) map.setFilter('water_shadow', oceanOnly);
+
+    if (useSitePalette) {
+      const rootStyle = getComputedStyle(document.documentElement);
+      const color = (token, fallback) => rootStyle.getPropertyValue(token).trim() || fallback;
+      const palette = {
+        ocean: color('--bg-cover', '#04132b'),
+        land: color('--illus-sea-1', '#12658c'),
+        landDetail: color('--illus-sky-1', '#0b3b69'),
+        coast: color('--illus-glow', '#2d93b5'),
+        boundary: color('--text-dim', '#78a7bf'),
+      };
+      const setPaint = (id, property, value) => {
+        if (map.getLayer(id)) map.setPaintProperty(id, property, value);
+      };
+
+      setPaint('background', 'background-color', palette.land);
+      setPaint('water', 'fill-color', palette.ocean);
+      for (const id of ['landcover', 'park_national_park', 'park_nature_reserve', 'landuse']) {
+        setPaint(id, 'fill-color', palette.land);
+      }
+      setPaint('landuse_residential', 'fill-color', palette.landDetail);
+      setPaint('landuse_residential', 'fill-opacity', 0.62);
+      setPaint('boundary_country_outline', 'line-color', palette.coast);
+      setPaint('boundary_country_outline', 'line-opacity', 0.68);
+      setPaint('boundary_country_inner', 'line-color', palette.boundary);
+      setPaint('boundary_country_inner', 'line-opacity', 0.38);
+    }
+  } catch {
+    /* Positron / Dark Matter 圖層名稱不完全相同 */
+  }
+}
+
+let cablesCache = null;
+const breathingMaps = new WeakSet();
+
+async function loadCablesData() {
+  if (!cablesCache) {
+    cablesCache = await fetch('./data/cables.json').then((res) => res.json());
+  }
+  return cablesCache;
+}
+
+function cableLayers(color) {
+  const gold = color === GOLD_CABLE;
+  return [
+    {
+      id: 'cables-glow',
+      type: 'line',
+      source: 'cables',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': color,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 4, gold ? 3.2 : 2.2, 7, gold ? 4.4 : 3.6, 10, gold ? 6 : 5],
+        'line-opacity': gold ? 0.22 : 0.12,
+        'line-blur': 1.2,
+        'line-opacity-transition': { duration: 0 },
+        'line-blur-transition': { duration: 0 },
+      },
+    },
+    {
+      id: 'cables-line',
+      type: 'line',
+      source: 'cables',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': color,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 4, gold ? 1.4 : 0.9, 7, gold ? 2.2 : 1.6, 10, gold ? 3 : 2.4],
+        'line-opacity': gold ? 0.88 : 0.4,
+        'line-opacity-transition': { duration: 0 },
+      },
+    },
+  ];
+}
+
+async function addCables(map, { breathe = true, root, color = CABLE_COLOR } = {}) {
+  const data = await loadCablesData();
+  if (!map.getSource('cables')) {
+    map.addSource('cables', { type: 'geojson', data });
+  }
+  for (const layer of cableLayers(color)) {
+    if (!map.getLayer(layer.id)) map.addLayer(layer);
+    else map.setPaintProperty(layer.id, 'line-color', color);
+  }
+  if (breathe && !breathingMaps.has(map)) {
+    breathingMaps.add(map);
+    breatheCables(map, root, color === GOLD_CABLE ? { line: [0.62, 1], glow: [0.16, 0.4] } : undefined);
+  }
+}
+
+function breatheCables(map, root = document.getElementById('cover'), ranges) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const period = 3200;
+  const line = ranges?.line ?? [0.22, 0.78];
+  const glow = ranges?.glow ?? [0.06, 0.36];
+  let visible = true;
+  let raf = 0;
+
+  const lerp = (range, t) => range[0] + (range[1] - range[0]) * t;
+
+  const tick = (now) => {
+    if (!visible) {
+      raf = 0;
+      return;
+    }
+    try {
+      if (map.isStyleLoaded() && map.getLayer('cables-line') && map.getLayer('cables-glow')) {
+        const t = (1 - Math.cos(((now % period) / period) * Math.PI * 2)) / 2;
+        map.setPaintProperty('cables-line', 'line-opacity', lerp(line, t));
+        map.setPaintProperty('cables-glow', 'line-opacity', lerp(glow, t));
+        map.setPaintProperty('cables-glow', 'line-blur', 0.8 + 2.8 * t);
+      }
+    } catch {
+      /* setStyle 期間圖層會暫時不在 */
+    }
+    raf = requestAnimationFrame(tick);
+  };
+
+  if (root && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !raf) raf = requestAnimationFrame(tick);
+    }, { threshold: 0.08 });
+    io.observe(root);
+  }
+
+  raf = requestAnimationFrame(tick);
+}
+
+function stripMapParams() {
+  const url = new URL(location.href);
+  if (!url.searchParams.has('lng') && !url.searchParams.has('lat') && !url.searchParams.has('z')) return;
+  url.searchParams.delete('lng');
+  url.searchParams.delete('lat');
+  url.searchParams.delete('z');
+  history.replaceState(null, '', url);
+}
+
+function positionCoverMap(map) {
+  map.jumpTo({ center: [DEFAULT.lng, DEFAULT.lat], zoom: DEFAULT.z });
+
+  const taiwanLeft = map.project(COVER_TAIWAN_LEFT_EDGE);
+  if (taiwanLeft.x >= COVER_TAIWAN_MIN_X) return;
+
+  const shift = COVER_TAIWAN_MIN_X - taiwanLeft.x;
+  const centerPoint = map.project(map.getCenter());
+  const anchoredCenter = map.unproject([centerPoint.x - shift, centerPoint.y]);
+  map.jumpTo({ center: anchoredCenter, zoom: DEFAULT.z });
+}
+
+function initCoverMap() {
+  const container = document.getElementById('cover-map');
+  const cover = document.getElementById('cover');
+  if (!container || !cover || container.querySelector('.maplibregl-canvas')) return;
+
+  stripMapParams();
+  const map = new maplibregl.Map({
+    container,
+    style: mapStyleUrl(),
+    center: [DEFAULT.lng, DEFAULT.lat],
+    zoom: DEFAULT.z,
+    interactive: false,
+    dragPan: false,
+    dragRotate: false,
+    touchPitch: false,
+    scrollZoom: false,
+    doubleClickZoom: false,
+    attributionControl: false,
+    fadeDuration: 0,
+  });
+
+  const paint = async () => {
+    restyleBaseMap(map);
+    await addCables(map, { color: coverCableColor() });
+    map.resize();
+    positionCoverMap(map);
+  };
+
+  map.on('load', paint);
+
+  let resizeRaf = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      map.resize();
+      positionCoverMap(map);
+    });
+  });
+}
+
+async function loadLandings() {
+  const res = await fetch('./data/landings.json', { cache: 'no-store' });
+  if (!res.ok) throw new Error('landings.json missing');
+  return res.json();
+}
+
+function fitLandingMap(map) {
+  const pad = window.matchMedia('(max-width: 800px)').matches
+    ? { top: 64, bottom: 400, left: 20, right: 20 }
+    : { top: 80, bottom: 72, left: 460, right: 88 };
+  map.fitBounds(
+    [
+      [119.95, 21.88],
+      [122.08, 25.38],
+    ],
+    { padding: pad, duration: 0, maxZoom: 8.2 },
+  );
+}
+
+const LANDING_EXITS = {
+  toucheng: { via: [[122.18, 24.88], [124.85, 25.28]], out: [127.4, 25.75] },
+  bali: { via: [[121.32, 25.42], [122.05, 26.85]], out: [123.55, 28.25] },
+  tamsui: { via: [[121.58, 25.52], [123.55, 26.72]], out: [126.35, 27.55] },
+  fangshan: { via: [[120.42, 22.28], [118.75, 20.75]], out: [117.15, 19.25] },
+  dawu: { via: [[121.18, 22.48], [123.45, 21.15]], out: [125.9, 19.7] },
+};
+
+const DOMESTIC_DESTINATIONS = new Set(['kinmen', 'matsu']);
+const TAIWAN_ROUTE_ORIGIN = [120.97, 23.72];
+const NETWORK_WRAP_CENTER = 170;
+const DOMESTIC_CABLE_SYSTEMS = new Set([
+  'tpkm3',
+  'twpk1',
+  'twpk3',
+  'twtk2',
+  'twtm2',
+  'twtm3',
+  'twtp2',
+  'twtp3',
+]);
+
+function setSvgPathProgress(path, progress, reverse = false) {
+  const fullPath = path.dataset.fullPath;
+  if (!fullPath) return;
+  const p = clamp01(progress);
+  path.setAttribute('d', fullPath);
+  path.style.strokeDasharray = '';
+  path.style.strokeDashoffset = '';
+  path.removeAttribute('pathLength');
+  // 用 opacity 取代 visibility:hidden，避免 Firefox 之後量不到 path 長度
+  path.style.opacity = p <= 0.001 ? '0' : '1';
+  path.style.visibility = 'visible';
+  if (p <= 0.001) return;
+  if (p >= 0.999) return;
+
+  let length = 0;
+  try {
+    // 強制 layout，避免 Firefox 在剛改 opacity 後 getTotalLength() 回 0
+    path.getBBox();
+    length = path.getTotalLength();
+  } catch {
+    return;
+  }
+  if (!Number.isFinite(length) || length < 1) return;
+
+  const visibleLength = length * p;
+  const steps = Math.max(8, Math.ceil(48 * p));
+  const points = Array.from({ length: steps + 1 }, (_, index) => {
+    const visibleProgress = visibleLength * (index / steps);
+    return path.getPointAtLength(reverse ? length - visibleProgress : visibleProgress);
+  });
+  path.setAttribute(
+    'd',
+    points
+      .map((point, index) => `${index ? 'L' : 'M'}${point.x.toFixed(1)},${point.y.toFixed(1)}`)
+      .join(' '),
+  );
+}
+
+function viewportEdgePoint(start, target, width, height) {
+  const dx = target.x - start.x;
+  const dy = target.y - start.y;
+  const candidates = [];
+  if (dx > 0) candidates.push((width - start.x) / dx);
+  if (dx < 0) candidates.push((0 - start.x) / dx);
+  if (dy > 0) candidates.push((height - start.y) / dy);
+  if (dy < 0) candidates.push((0 - start.y) / dy);
+  const progress = Math.min(...candidates.filter((value) => value > 0));
+  return {
+    x: start.x + dx * progress,
+    y: start.y + dy * progress,
+  };
+}
+
+function addLandingRoutes(map, sites) {
+  const wrap = map.getContainer();
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'landing-routes-svg');
+  svg.setAttribute('aria-hidden', 'true');
+  wrap.appendChild(svg);
+  let progress = 0;
+
+  const applyProgress = () => {
+    for (const path of svg.querySelectorAll('.landing-route-path')) {
+      setSvgPathProgress(path, progress, true);
+    }
+  };
+
+  const draw = () => {
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    if (!w || !h) return;
+    const origin = wrap.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.setAttribute('width', String(w));
+    svg.setAttribute('height', String(h));
+
+    const pins = [...wrap.querySelectorAll('.network-landing-pin')];
+    const grads = [];
+    const paths = [];
+    for (const site of sites) {
+      const el = pins.find((pin) => pin.querySelector('.land-pin-label')?.textContent === site.name);
+      const dot = el?.querySelector('.land-pin-dot');
+      if (!dot) continue;
+      const box = dot.getBoundingClientRect();
+      const start = {
+        x: box.left + box.width / 2 - origin.left,
+        y: box.top + box.height / 2 - origin.top,
+      };
+      const exit = LANDING_EXITS[site.id];
+      if (!exit) continue;
+      const projectedC1 = map.project(exit.via[0]);
+      const target = map.project(exit.out);
+      const end = viewportEdgePoint(start, target, w, h);
+      const c1 = {
+        x: Math.max(0, Math.min(w, projectedC1.x)),
+        y: Math.max(0, Math.min(h, projectedC1.y)),
+      };
+      const c2 = {
+        x: c1.x + (end.x - c1.x) * 0.68,
+        y: c1.y + (end.y - c1.y) * 0.68,
+      };
+      const gid = `${wrap.id}-route-${site.id}`;
+      grads.push(
+        `<linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="${end.x}" y1="${end.y}" x2="${start.x}" y2="${start.y}">` +
+          `<stop offset="0%" stop-color="${GOLD_CABLE}" stop-opacity="0.18"/>` +
+          `<stop offset="46%" stop-color="${GOLD_CABLE}" stop-opacity="0.62"/>` +
+          `<stop offset="100%" stop-color="${GOLD_CABLE}" stop-opacity="1"/>` +
+          `</linearGradient>`,
+      );
+      const d = `M${start.x.toFixed(1)},${start.y.toFixed(1)} C${c1.x.toFixed(1)},${c1.y.toFixed(1)} ${c2.x.toFixed(1)},${c2.y.toFixed(1)} ${end.x.toFixed(1)},${end.y.toFixed(1)}`;
+      // 不使用 feGaussianBlur 光暈：Firefox 易掛，兩邊改為同一套實線描繪
+      paths.push(
+        `<path class="landing-route-path" data-full-path="${d}" d="${d}" fill="none" stroke="url(#${gid})" stroke-width="2.6" stroke-linecap="round"></path>`,
+      );
+    }
+    svg.innerHTML = `<defs>${grads.join('')}</defs>${paths.join('')}`;
+    applyProgress();
+  };
+
+  map.on('move', draw);
+  map.on('resize', draw);
+  requestAnimationFrame(draw);
+  return {
+    svg,
+    draw,
+    setProgress(nextProgress) {
+      progress = clamp01(nextProgress);
+      applyProgress();
+    },
+  };
+}
+
+function wrapLongitude(lng, center = NETWORK_WRAP_CENTER) {
+  let wrapped = Number(lng);
+  while (wrapped - center > 180) wrapped -= 360;
+  while (wrapped - center < -180) wrapped += 360;
+  return wrapped;
+}
+
+function routeDistance([lng, lat]) {
+  const lngDelta = wrapLongitude(lng, TAIWAN_ROUTE_ORIGIN[0]) - TAIWAN_ROUTE_ORIGIN[0];
+  const latDelta = lat - TAIWAN_ROUTE_ORIGIN[1];
+  return Math.hypot(lngDelta * Math.cos((lat * Math.PI) / 180), latDelta);
+}
+
+function cableSegmentLength(coordinates) {
+  let length = 0;
+  for (let index = 1; index < coordinates.length; index += 1) {
+    const [previousLng, previousLat] = coordinates[index - 1];
+    const [lng, lat] = coordinates[index];
+    const wrappedLng = wrapLongitude(lng, previousLng);
+    const lngDelta = (wrappedLng - previousLng) * Math.cos((((lat + previousLat) / 2) * Math.PI) / 180);
+    length += Math.hypot(lngDelta, lat - previousLat);
+  }
+  return length;
+}
+
+function prepareCableRoutes(cableData) {
+  const routes = (cableData.features ?? [])
+    .filter((feature) => feature.geometry?.type === 'LineString')
+    .map((feature) => {
+      const coordinates = [...feature.geometry.coordinates];
+      const cable = feature.properties?.cable ?? feature.properties?.name ?? feature.properties?.id;
+      return {
+        coordinates,
+        cable,
+        length: cableSegmentLength(coordinates),
+        routeType: DOMESTIC_CABLE_SYSTEMS.has(cable) ? 'domestic' : 'overseas',
+      };
+    });
+
+  const byCable = new Map();
+  routes.forEach((route) => {
+    if (!byCable.has(route.cable)) byCable.set(route.cable, []);
+    byCable.get(route.cable).push(route);
+  });
+  const scheduled = [];
+  for (const cableRoutes of byCable.values()) {
+    const nodes = new Map();
+    const nodeFor = (coordinate) => {
+      const key = `${coordinate[0].toFixed(4)},${coordinate[1].toFixed(4)}`;
+      if (!nodes.has(key)) {
+        nodes.set(key, {
+          coordinate,
+          distance: Number.POSITIVE_INFINITY,
+          edges: [],
+        });
+      }
+      return nodes.get(key);
+    };
+
+    cableRoutes.forEach((route) => {
+      route.startNode = nodeFor(route.coordinates[0]);
+      route.endNode = nodeFor(route.coordinates.at(-1));
+      route.startNode.edges.push({ route, next: route.endNode });
+      route.endNode.edges.push({ route, next: route.startNode });
+    });
+
+    const pending = new Set(nodes.values());
+    while (pending.size) {
+      let current = null;
+      for (const node of pending) {
+        if (!current || node.distance < current.distance) current = node;
+      }
+      if (!Number.isFinite(current.distance)) {
+        for (const node of pending) {
+          if (!current || routeDistance(node.coordinate) < routeDistance(current.coordinate)) current = node;
+        }
+        current.distance = routeDistance(current.coordinate);
+      }
+      pending.delete(current);
+      current.edges.forEach(({ route, next }) => {
+        const distance = current.distance + route.length;
+        if (distance < next.distance) next.distance = distance;
+      });
+    }
+
+    cableRoutes.forEach((route) => {
+      const reverse = route.endNode.distance < route.startNode.distance;
+      const coordinates = reverse ? [...route.coordinates].reverse() : route.coordinates;
+      const startDistance = Math.min(route.startNode.distance, route.endNode.distance);
+      scheduled.push({
+        ...route,
+        coordinates,
+        startDistance,
+        endDistance: startDistance + route.length,
+      });
+    });
+  }
+
+  const maxDistance = Math.max(1, ...scheduled.map(({ endDistance }) => endDistance));
+  return scheduled.map((route) => ({
+    ...route,
+    start: clamp01(route.startDistance / maxDistance),
+    end: clamp01(route.endDistance / maxDistance),
+  }));
+}
+
+function addOutboundRoutes(map, cableData) {
+  const wrap = map.getContainer();
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'landing-routes-svg outbound-routes-svg');
+  svg.setAttribute('aria-hidden', 'true');
+  wrap.appendChild(svg);
+  const routes = prepareCableRoutes(cableData);
+  let domesticProgress = 0;
+  let overseasProgress = 0;
+  let drawRaf = 0;
+
+  const applyProgress = () => {
+    for (const path of svg.querySelectorAll('.outbound-route-path')) {
+      const progress = path.dataset.routeType === 'domestic'
+        ? domesticProgress
+        : overseasProgress;
+      const start = Number(path.dataset.routeStart) || 0;
+      const end = Number(path.dataset.routeEnd) || 1;
+      const localProgress = rangeProgress(progress, start, Math.max(start + 0.001, end));
+      path.style.visibility = localProgress <= 0.001 ? 'hidden' : 'visible';
+      path.style.strokeDashoffset = (1 - localProgress).toFixed(3);
+    }
+  };
+
+  const draw = () => {
+    const width = wrap.clientWidth;
+    const height = wrap.clientHeight;
+    if (!width || !height) return;
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('width', String(width));
+    svg.setAttribute('height', String(height));
+
+    const paths = [];
+    const mapCenter = map.getCenter().lng;
+    for (const route of routes) {
+      const step = Math.max(1, Math.ceil(route.coordinates.length / 120));
+      const coordinates = route.coordinates.filter((_, index) => index % step === 0);
+      if (coordinates.at(-1) !== route.coordinates.at(-1)) coordinates.push(route.coordinates.at(-1));
+      const d = coordinates
+        .map(([lng, lat], index) => {
+          const point = map.project([wrapLongitude(lng, mapCenter), lat]);
+          return `${index ? 'L' : 'M'}${point.x.toFixed(1)},${point.y.toFixed(1)}`;
+        })
+        .join(' ');
+      const { routeType } = route;
+      const color = routeType === 'domestic' ? DOMESTIC_CABLE : OVERSEAS_CABLE;
+      const shared = `data-route-type="${routeType}" data-route-start="${route.start.toFixed(4)}" data-route-end="${route.end.toFixed(4)}" pathLength="1" style="stroke-dasharray:1;stroke-dashoffset:1"`;
+      paths.push(
+        `<path class="outbound-route-path" ${shared} d="${d}" fill="none" stroke="${color}" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"></path>`,
+      );
+    }
+    svg.innerHTML = paths.join('');
+    applyProgress();
+  };
+
+  const requestDraw = () => {
+    if (drawRaf) return;
+    drawRaf = requestAnimationFrame(() => {
+      drawRaf = 0;
+      draw();
+    });
+  };
+
+  map.on('move', requestDraw);
+  map.on('resize', requestDraw);
+  requestDraw();
+  return {
+    svg,
+    draw,
+    setProgress(nextDomesticProgress, nextOverseasProgress) {
+      domesticProgress = clamp01(nextDomesticProgress);
+      overseasProgress = clamp01(nextOverseasProgress);
+      applyProgress();
+    },
+  };
+}
+
+function addLandingPins(map, sites, className = 'land-pin') {
+  const elements = [];
+  for (const site of sites) {
+    const el = document.createElement('div');
+    el.className = `${className} land-pin--${site.anchor}`;
+    el.dataset.siteId = site.id;
+    el.innerHTML = `<span class="land-pin-dot"></span><span class="land-pin-label">${site.name}</span>`;
+    new maplibregl.Marker({ element: el, anchor: 'center', draggable: false })
+      .setLngLat([site.lng, site.lat])
+      .addTo(map);
+    elements.push(el);
+  }
+  return elements;
+}
+
+async function loadDestinations() {
+  const res = await fetch('./data/destinations.json', { cache: 'no-store' });
+  if (!res.ok) throw new Error('destinations.json missing');
+  return res.json();
+}
+
+async function postConfig(path, payload) {
+  const urls = [path];
+  if (location.port !== '3456') urls.push(`http://127.0.0.1:3456${path}`);
+  let lastErr = '寫檔服務沒開（請用 npm run dev）';
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) return payload;
+      lastErr = (await res.text()) || `HTTP ${res.status}`;
+    } catch {
+      lastErr = '寫檔服務沒開（請用 npm run dev）';
+    }
+  }
+  throw new Error(lastErr);
+}
+
+async function saveDestinations(sites) {
+  const payload = sites.map((site) => ({
+    id: site.id,
+    name: site.name,
+    lng: Number(Number(site.lng).toFixed(5)),
+    lat: Number(Number(site.lat).toFixed(5)),
+    anchor: site.anchor,
+  }));
+  return postConfig('/__save-destinations', payload);
+}
+
+function addDestinationPins(map, sites, { editable = false, hint, wrapCenter = null } = {}) {
+  const elements = [];
+  for (const site of sites) {
+    const el = document.createElement('div');
+    const routeType = DOMESTIC_DESTINATIONS.has(site.id) ? 'domestic' : 'overseas';
+    el.className = `land-pin dest-pin network-destination-pin network-destination-pin--${routeType} land-pin--${site.anchor}`;
+    el.dataset.siteId = site.id;
+    el.innerHTML = `<span class="land-pin-dot"></span><span class="land-pin-label">${site.name}</span>`;
+    const lng = wrapCenter === null ? site.lng : wrapLongitude(site.lng, wrapCenter);
+    const marker = new maplibregl.Marker({ element: el, anchor: 'center', draggable: false })
+      .setLngLat([lng, site.lat])
+      .addTo(map);
+    if (editable) enableDestPinDrag(map, marker, site, sites, hint);
+    elements.push(el);
+  }
+  return elements;
+}
+
+function enableDestPinDrag(map, marker, site, sites, hint) {
+  const el = marker.getElement();
+  el.classList.add('is-draggable');
+  let dragging = false;
+
+  const toLngLat = (event) => {
+    const box = map.getContainer().getBoundingClientRect();
+    return map.unproject([event.clientX - box.left, event.clientY - box.top]);
+  };
+
+  el.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    dragging = true;
+    el.classList.add('is-dragging');
+    el.setPointerCapture(event.pointerId);
+  });
+
+  el.addEventListener('pointermove', (event) => {
+    if (!dragging) return;
+    marker.setLngLat(toLngLat(event));
+  });
+
+  const finish = async () => {
+    if (!dragging) return;
+    dragging = false;
+    el.classList.remove('is-dragging');
+    const ll = marker.getLngLat();
+    site.lng = ll.lng;
+    site.lat = ll.lat;
+    try {
+      const saved = await saveDestinations(sites);
+      const current = saved.find((item) => item.id === site.id) ?? site;
+      if (hint) {
+        hint.textContent = `已存 ${site.name} ${current.lng}, ${current.lat}`;
+        hint.dataset.state = 'saved';
+      }
+    } catch (err) {
+      if (hint) {
+        hint.textContent = `存檔失敗：${err instanceof Error ? err.message : '未知錯誤'}`;
+        hint.dataset.state = 'error';
+      }
+    }
+  };
+
+  el.addEventListener('pointerup', finish);
+  el.addEventListener('pointercancel', finish);
+}
+
+function isLocalDev() {
+  const host = location.hostname;
+  return host === '127.0.0.1' || host === 'localhost';
+}
+
+async function loadTaiwanView() {
+  try {
+    const res = await fetch('./data/taiwan-view.json', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const view = await res.json();
+    const lng = Number(view.lng);
+    const lat = Number(view.lat);
+    const zoom = Number(view.zoom);
+    if (![lng, lat, zoom].every(Number.isFinite)) return null;
+    return { lng, lat, zoom };
+  } catch {
+    return null;
+  }
+}
+
+function clamp01(value) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function rangeProgress(value, start, end) {
+  return clamp01((value - start) / (end - start));
+}
+
+function smoothstep(value) {
+  const t = clamp01(value);
+  return t * t * (3 - 2 * t);
+}
+
+function mix(from, to, progress) {
+  return from + (to - from) * progress;
+}
+
+function landingCameraFor(map) {
+  const mobile = window.matchMedia('(max-width: 800px)').matches;
+  const padding = mobile
+    ? { top: 64, bottom: 360, left: 20, right: 20 }
+    : { top: 80, bottom: 72, left: 460, right: 88 };
+  const camera = map.cameraForBounds(
+    [
+      [119.95, 21.88],
+      [122.08, 25.38],
+    ],
+    { padding, maxZoom: 8.2 },
+  );
+  return {
+    lng: camera?.center.lng ?? 121.05,
+    lat: camera?.center.lat ?? 23.72,
+    zoom: (camera?.zoom ?? 7) - (mobile ? 0.24 : 0.48),
+  };
+}
+
+function globalCameraFor(map, destinations) {
+  const mobile = window.matchMedia('(max-width: 800px)').matches;
+  const padding = mobile
+    ? { top: 64, bottom: 310, left: 24, right: 24 }
+    : { top: 72, bottom: 72, left: 64, right: 64 };
+  const bounds = new maplibregl.LngLatBounds();
+  for (const site of destinations) {
+    bounds.extend([wrapLongitude(site.lng), site.lat]);
+  }
+  bounds.extend(TAIWAN_ROUTE_ORIGIN);
+  const camera = map.cameraForBounds(bounds, { padding, maxZoom: mobile ? 1.8 : 3.1 });
+  return {
+    lng: camera?.center.lng ?? NETWORK_WRAP_CENTER,
+    lat: camera?.center.lat ?? 20,
+    zoom: camera?.zoom ?? (mobile ? 1 : 2),
+  };
+}
+
+function setPanelState(panel, opacity, shift) {
+  if (!panel) return;
+  panel.style.opacity = opacity.toFixed(3);
+  panel.style.setProperty('--network-shift', `${shift.toFixed(1)}px`);
+  panel.style.pointerEvents = opacity > 0.55 ? 'auto' : 'none';
+  panel.setAttribute('aria-hidden', String(opacity < 0.08));
+}
+
+async function initNetworkStoryMap() {
+  const container = document.getElementById('network-map');
+  const scene = document.getElementById('landing');
+  if (!container || !scene || container.querySelector('.maplibregl-canvas')) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const map = new maplibregl.Map({
+    container,
+    style: mapStyleUrl(),
+    center: [121.05, 23.72],
+    zoom: 7,
+    interactive: false,
+    dragPan: false,
+    dragRotate: false,
+    touchPitch: false,
+    scrollZoom: false,
+    boxZoom: false,
+    doubleClickZoom: false,
+    attributionControl: false,
+    fadeDuration: 0,
+  });
+
+  map.on('load', async () => {
+    restyleBaseMap(map, { useSitePalette: true });
+    const [landings, destinations, cableData] = await Promise.all([
+      loadLandings(),
+      loadDestinations(),
+      loadCablesData(),
+    ]);
+    addLandingPins(map, landings, 'land-pin network-landing-pin');
+    const landingRoutes = addLandingRoutes(map, landings);
+    addDestinationPins(map, destinations, { wrapCenter: NETWORK_WRAP_CENTER });
+    const outboundRoutes = addOutboundRoutes(map, cableData);
+    const landingPanel = scene.querySelector('[data-network-panel="landing"]');
+    const globalPanel = scene.querySelector('[data-network-panel="global"]');
+    let landingCamera;
+    let globalCamera;
+    let raf = 0;
+    let lastJump = { lng: NaN, lat: NaN, zoom: NaN };
+
+    const updateCameras = () => {
+      map.resize();
+      landingCamera = landingCameraFor(map);
+      globalCamera = globalCameraFor(map, destinations);
+    };
+
+    const scrollProgress = () => {
+      const rect = scene.getBoundingClientRect();
+      const travel = Math.max(1, scene.offsetHeight - window.innerHeight);
+      return clamp01(-rect.top / travel);
+    };
+
+    const render = () => {
+      raf = 0;
+      if (!landingCamera || !globalCamera) return;
+      const progress = scrollProgress();
+      const incomingProgress = reduceMotion.matches
+        ? 1
+        : smoothstep(rangeProgress(progress, 0.02, 0.24));
+      const zoomProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.42, 0.54));
+      const panProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.54, 0.62));
+      const routeProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.42, 0.56));
+      const domesticRouteProgress = reduceMotion.matches
+        ? Number(progress >= 0.62)
+        : smoothstep(rangeProgress(progress, 0.62, 0.775));
+      const overseasRouteProgress = reduceMotion.matches
+        ? Number(progress >= 0.62)
+        : smoothstep(rangeProgress(progress, 0.62, 0.845));
+      const landingPinProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.42, 0.56));
+      const destinationPinProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.44, 0.5));
+      const landingPanelProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.42, 0.55));
+      const globalPanelProgress = reduceMotion.matches
+        ? Number(progress >= 0.5)
+        : smoothstep(rangeProgress(progress, 0.57, 0.66));
+
+      const zoomCenter = [
+        mix(landingCamera.lng, TAIWAN_ROUTE_ORIGIN[0], zoomProgress),
+        mix(landingCamera.lat, TAIWAN_ROUTE_ORIGIN[1], zoomProgress),
+      ];
+      const nextLng = mix(zoomCenter[0], globalCamera.lng, panProgress);
+      const nextLat = mix(zoomCenter[1], globalCamera.lat, panProgress);
+      const nextZoom = mix(landingCamera.zoom, globalCamera.zoom, zoomProgress);
+      // 減少每幀 jumpTo，降低 Firefox 底圖瓦片來不及合成的色塊
+      if (
+        !Number.isFinite(lastJump.lng)
+        || Math.abs(lastJump.lng - nextLng) > 1e-5
+        || Math.abs(lastJump.lat - nextLat) > 1e-5
+        || Math.abs(lastJump.zoom - nextZoom) > 1e-4
+      ) {
+        map.jumpTo({
+          center: [nextLng, nextLat],
+          zoom: nextZoom,
+          bearing: 0,
+          pitch: 0,
+        });
+        lastJump = { lng: nextLng, lat: nextLat, zoom: nextZoom };
+      }
+
+      landingRoutes.svg.style.opacity = (1 - routeProgress).toFixed(3);
+      landingRoutes.setProgress(incomingProgress);
+      outboundRoutes.setProgress(domesticRouteProgress, overseasRouteProgress);
+      scene.style.setProperty('--landing-pin-opacity', (1 - landingPinProgress).toFixed(3));
+      scene.style.setProperty('--domestic-pin-opacity', destinationPinProgress.toFixed(3));
+      scene.style.setProperty('--overseas-pin-opacity', destinationPinProgress.toFixed(3));
+
+      setPanelState(landingPanel, 1 - landingPanelProgress, -12 * landingPanelProgress);
+      setPanelState(globalPanel, globalPanelProgress, 14 * (1 - globalPanelProgress));
+      scene.dataset.networkProgress = progress.toFixed(3);
+      scene.dataset.networkPhase = progress < 0.24
+          ? 'landing-routes'
+          : progress < 0.42
+            ? 'landing-hold'
+            : progress < 0.62
+              ? 'zoom-out'
+              : progress < 0.845
+                ? 'outbound-routes'
+                : 'global-hold';
+      scene.dataset.incomingProgress = incomingProgress.toFixed(3);
+      scene.dataset.destinationProgress = destinationPinProgress.toFixed(3);
+      scene.dataset.domesticProgress = domesticRouteProgress.toFixed(3);
+      scene.dataset.overseasProgress = overseasRouteProgress.toFixed(3);
+    };
+
+    const requestRender = () => {
+      if (!raf) raf = requestAnimationFrame(render);
+    };
+
+    updateCameras();
+    render();
+
+    window.addEventListener('scroll', requestRender, { passive: true });
+    window.addEventListener('resize', () => {
+      updateCameras();
+      requestRender();
+    });
+    reduceMotion.addEventListener?.('change', requestRender);
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        updateCameras();
+        requestRender();
+      }, { threshold: 0.02 });
+      observer.observe(scene);
+    }
+  });
+}
+
+function initMaps() {
+  initCoverMap();
+  if (!new URLSearchParams(location.search).has('cover-preview')) initNetworkStoryMap();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMaps);
+} else {
+  initMaps();
+}

@@ -1,0 +1,2 @@
+Sitemap: https://resilience.ocf.tw/sitemap.xml
+Sitemap: https://resilience.ocf.tw/web/sitemap.xml
