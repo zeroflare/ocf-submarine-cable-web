@@ -1176,6 +1176,26 @@ dialog.article-dialog::backdrop {
   overscroll-behavior: contain;
 }
 
+.article-dialog-status {
+  min-height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 32px;
+  color: var(--text-mid);
+  text-align: center;
+}
+
+.article-dialog-status p {
+  margin: 0;
+}
+
+.article-dialog-status a {
+  color: var(--link);
+  text-underline-offset: 3px;
+}
+
 .article-wrap--modal {
   max-width: none;
   padding: 4px 32px 64px;
@@ -1337,6 +1357,15 @@ html:has(.article-modal-page) body {
   text-decoration: none;
   font-size: 15px;
   line-height: 1.45;
+}
+
+.article-toc-item--h3 {
+  padding-left: 16px;
+}
+
+.article-toc-item--h3 a {
+  font-size: 14px;
+  color: var(--text-dim);
 }
 
 .article-toc-list a:hover,

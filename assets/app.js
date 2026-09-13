@@ -406,8 +406,54 @@ function articleSlugFromHref(href) {
   return null;
 }
 
+function hydrateArticleToc(root = document) {
+  root.querySelectorAll('.article-wrap').forEach((article) => {
+    const prose = article.querySelector('.prose');
+    const headings = [...(prose?.querySelectorAll('h2, h3') || [])];
+    if (!headings.length) return;
+
+    let toc = article.querySelector('.article-toc');
+    if (!toc) {
+      toc = document.createElement('nav');
+      toc.className = 'article-toc';
+      toc.setAttribute('aria-label', '文章目錄');
+      const meta = article.querySelector('.article-meta');
+      (meta || article.querySelector('h1'))?.insertAdjacentElement('afterend', toc);
+    }
+
+    const title = document.createElement('p');
+    title.className = 'article-toc-title';
+    title.textContent = '目錄';
+    const list = document.createElement('ol');
+    list.className = 'article-toc-list';
+    const usedIds = new Set();
+
+    headings.forEach((heading, index) => {
+      let id = heading.id || heading.textContent.trim()
+        .replace(/[\s，。：；？！、「」『』（）()/]+/g, '-')
+        .replace(/^-+|-+$/g, '') || `section-${index + 1}`;
+      const baseId = id;
+      let suffix = 2;
+      while (usedIds.has(id)) id = `${baseId}-${suffix++}`;
+      heading.id = id;
+      usedIds.add(id);
+
+      const item = document.createElement('li');
+      item.className = `article-toc-item article-toc-item--${heading.tagName.toLowerCase()}`;
+      const link = document.createElement('a');
+      link.href = `#${id}`;
+      link.textContent = heading.textContent.trim();
+      item.appendChild(link);
+      list.appendChild(item);
+    });
+
+    toc.replaceChildren(title, list);
+  });
+}
+
 function initStandaloneArticle() {
   if (!document.body.classList.contains('article-standalone')) return;
+  hydrateArticleToc();
   const home = document.body.dataset.home || '../';
   const goHome = () => {
     location.href = `${home}#articles`;
@@ -432,20 +478,22 @@ function initStandaloneArticle() {
 function initArticleModal() {
   const dialog = document.getElementById('article-modal');
   const content = document.getElementById('article-modal-content');
-  const templatesRoot = document.getElementById('article-templates');
-  if (!dialog || !content || !templatesRoot) {
+  if (!dialog || !content) {
     initStandaloneArticle();
     return;
   }
 
-  const templates = new Map();
-  templatesRoot.querySelectorAll('template[data-article]').forEach((tpl) => {
-    templates.set(tpl.dataset.article, tpl);
-  });
+  const articleSlugs = new Set(
+    [...document.querySelectorAll('a[data-article]')]
+      .map((link) => link.dataset.article)
+      .filter(Boolean),
+  );
+  const articleCache = new Map();
 
   let lastFocus = null;
   let scrollY = 0;
   let sessionPushed = false;
+  let loadToken = 0;
 
   const articleUrl = (slug) => `${location.pathname}${location.search}#article/${slug}`;
   const currentSlug = () => {
@@ -458,10 +506,66 @@ function initArticleModal() {
     content.scrollTop = 0;
   }
 
-  function fill(slug) {
-    const tpl = templates.get(slug);
-    if (!tpl) return false;
-    content.replaceChildren(tpl.content.cloneNode(true));
+  function setStatus(message, slug, failed = false) {
+    const status = document.createElement('div');
+    status.className = 'article-dialog-status';
+    status.setAttribute('role', failed ? 'alert' : 'status');
+    const text = document.createElement('p');
+    text.textContent = message;
+    status.appendChild(text);
+    if (failed) {
+      const link = document.createElement('a');
+      link.href = `./articles/${encodeURIComponent(slug)}/`;
+      link.textContent = '改為開啟文章頁';
+      status.appendChild(link);
+    }
+    content.replaceChildren(status);
+    resetModalScroll();
+  }
+
+  function rebaseArticleUrls(article, baseUrl) {
+    const attributes = ['src', 'href', 'data', 'poster'];
+    article.querySelectorAll('*').forEach((element) => {
+      attributes.forEach((attribute) => {
+        const value = element.getAttribute(attribute);
+        if (!value || value.startsWith('#')) return;
+        try {
+          element.setAttribute(attribute, new URL(value, baseUrl).href);
+        } catch {
+          /* Keep malformed third-party URLs unchanged. */
+        }
+      });
+      const srcset = element.getAttribute('srcset');
+      if (!srcset) return;
+      const rebased = srcset.split(',').map((candidate) => {
+        const [url, ...descriptor] = candidate.trim().split(/\s+/);
+        try {
+          return [new URL(url, baseUrl).href, ...descriptor].join(' ');
+        } catch {
+          return candidate.trim();
+        }
+      }).join(', ');
+      element.setAttribute('srcset', rebased);
+    });
+  }
+
+  async function loadArticle(slug) {
+    if (articleCache.has(slug)) return articleCache.get(slug).cloneNode(true);
+    const articlePath = `./articles/${encodeURIComponent(slug)}/`;
+    const response = await fetch(articlePath, { headers: { Accept: 'text/html' } });
+    if (!response.ok) throw new Error(`Unable to load article (${response.status})`);
+    const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+    const source = page.querySelector('.article-dialog-scroll .article-wrap');
+    if (!source) throw new Error('Article content is missing');
+    const article = source.cloneNode(true);
+    rebaseArticleUrls(article, response.url);
+    articleCache.set(slug, article);
+    return article.cloneNode(true);
+  }
+
+  function fill(article) {
+    content.replaceChildren(article);
+    hydrateArticleToc(content);
     const title = content.querySelector('h1');
     if (title) {
       title.id = 'article-modal-title';
@@ -469,14 +573,14 @@ function initArticleModal() {
       dialog.setAttribute('aria-labelledby', 'article-modal-title');
     }
     resetModalScroll();
-    return true;
   }
 
-  function openArticle(slug, reason) {
-    if (!fill(slug)) {
+  async function openArticle(slug, reason) {
+    if (!articleSlugs.has(slug)) {
       location.href = `./articles/${slug}/`;
       return;
     }
+    const token = ++loadToken;
     const wasOpen = dialog.open;
     if (!wasOpen) {
       lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -485,9 +589,7 @@ function initArticleModal() {
       dialog.showModal();
       document.documentElement.classList.add('is-modal-open');
     }
-    resetModalScroll();
-    content.querySelector('h1')?.focus({ preventScroll: true });
-    requestAnimationFrame(resetModalScroll);
+    setStatus('文章載入中…', slug);
     if (reason === 'click') {
       const url = articleUrl(slug);
       if (wasOpen) history.replaceState({ article: slug }, '', url);
@@ -498,6 +600,18 @@ function initArticleModal() {
     } else if (reason === 'boot') {
       history.replaceState({ article: slug }, '', articleUrl(slug));
       sessionPushed = false;
+    }
+
+    try {
+      const article = await loadArticle(slug);
+      if (token !== loadToken || !dialog.open || currentSlug() !== slug) return;
+      fill(article);
+      content.querySelector('h1')?.focus({ preventScroll: true });
+      requestAnimationFrame(resetModalScroll);
+    } catch (error) {
+      if (token !== loadToken || !dialog.open) return;
+      console.error(error);
+      setStatus('文章暫時無法載入', slug, true);
     }
   }
 
@@ -511,14 +625,16 @@ function initArticleModal() {
       history.back();
       return;
     }
+    const articles = document.getElementById('articles');
     if (currentSlug()) {
       history.replaceState({}, '', `${location.pathname}${location.search}#articles`);
     }
+    if (articles) scrollY = articles.offsetTop;
     reallyClose();
-    document.getElementById('articles')?.scrollIntoView({ block: 'start' });
   }
 
   dialog.addEventListener('close', () => {
+    loadToken += 1;
     document.documentElement.classList.remove('is-modal-open');
     resetModalScroll();
     content.replaceChildren();
@@ -564,14 +680,14 @@ function initArticleModal() {
     if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     if (link.target === '_blank') return;
     const slug = link.dataset.article || articleSlugFromHref(link.getAttribute('href'));
-    if (!slug || !templates.has(slug)) return;
+    if (!slug || !articleSlugs.has(slug)) return;
     event.preventDefault();
     openArticle(slug, 'click');
   });
 
   window.addEventListener('popstate', () => {
     const slug = currentSlug();
-    if (slug && templates.has(slug)) {
+    if (slug && articleSlugs.has(slug)) {
       sessionPushed = false;
       openArticle(slug, 'pop');
       return;
@@ -581,7 +697,7 @@ function initArticleModal() {
   });
 
   const initial = currentSlug();
-  if (initial && templates.has(initial)) openArticle(initial, 'boot');
+  if (initial && articleSlugs.has(initial)) openArticle(initial, 'boot');
 }
 
 function init() {
