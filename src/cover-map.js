@@ -12,6 +12,89 @@ const DEFAULT = { lng: 125.57498, lat: 23.70176, z: 6 };
 const COVER_TAIWAN_LEFT_EDGE = [119.95, 23.72];
 const COVER_TAIWAN_MIN_X = 24;
 
+const MAP_FALLBACK_COPY = {
+  cover: '互動地圖暫時無法顯示。臺灣透過海底電纜連接世界各地。',
+  network: '互動地圖暫時無法顯示。臺灣的海纜由五個登陸點向離島與海外延伸。',
+};
+
+function mapSupportError() {
+  if (!window.maplibregl) return new Error('MapLibre 未載入');
+  try {
+    if (typeof window.maplibregl.supported === 'function' && !window.maplibregl.supported()) {
+      return new Error('瀏覽器不支援 WebGL');
+    }
+  } catch (error) {
+    return error instanceof Error ? error : new Error('無法檢查 WebGL 支援狀態');
+  }
+  return null;
+}
+
+function showMapFallback(container, message, error) {
+  if (!container || container.querySelector('[data-map-fallback]')) return;
+  console.warn('[map fallback]', error);
+  container.classList.add('map-fallback-active');
+  const fallback = document.createElement('div');
+  fallback.className = 'map-fallback';
+  fallback.dataset.mapFallback = '';
+  fallback.setAttribute('role', 'img');
+  fallback.setAttribute('aria-label', message);
+  fallback.innerHTML = `
+    <svg class="map-fallback-graphic" viewBox="0 0 360 220" aria-hidden="true">
+      <g class="map-fallback-routes">
+        <path d="M176 108 C112 74 58 58 8 34"></path>
+        <path d="M176 108 C100 110 50 126 8 158"></path>
+        <path d="M176 108 C236 64 292 40 352 18"></path>
+        <path d="M176 108 C246 104 304 116 352 148"></path>
+        <path d="M176 108 C238 150 286 182 338 212"></path>
+      </g>
+      <path class="map-fallback-taiwan" d="M183 48 C197 65 199 89 194 113 C190 139 180 166 168 181 C160 172 158 151 162 127 C165 101 169 70 183 48 Z"></path>
+      <circle class="map-fallback-node" cx="177" cy="108" r="6"></circle>
+    </svg>
+    <p>${message}</p>`;
+  container.appendChild(fallback);
+}
+
+function clearMapFallback(container) {
+  container?.classList.remove('map-fallback-active');
+  container?.querySelector('[data-map-fallback]')?.remove();
+}
+
+function prepareMap(container, fallbackMessage) {
+  const supportError = mapSupportError();
+  if (supportError) {
+    showMapFallback(container, fallbackMessage, supportError);
+    return null;
+  }
+  clearMapFallback(container);
+  return window.maplibregl;
+}
+
+function mapFailureHandler(map, container, fallbackMessage) {
+  let ready = false;
+  let failed = false;
+  const fail = (error) => {
+    if (failed) return;
+    failed = true;
+    try {
+      map.remove();
+    } catch {
+      /* 初始化失敗時 MapLibre 可能尚未建立完整資源 */
+    }
+    showMapFallback(container, fallbackMessage, error);
+  };
+  map.on('error', (event) => {
+    const error = event?.error ?? new Error('地圖初始化失敗');
+    if (!ready) fail(error);
+    else console.warn('[map error]', error);
+  });
+  return {
+    fail,
+    markReady() {
+      ready = true;
+    },
+  };
+}
+
 function coverCableColor() {
   return CABLE_COLOR;
 }
@@ -193,27 +276,42 @@ function initCoverMap() {
   const cover = document.getElementById('cover');
   if (!container || !cover || container.querySelector('.maplibregl-canvas')) return;
 
+  const maplibre = prepareMap(container, MAP_FALLBACK_COPY.cover);
+  if (!maplibre) return;
+
   stripMapParams();
-  const map = new maplibregl.Map({
-    container,
-    style: mapStyleUrl(),
-    center: [DEFAULT.lng, DEFAULT.lat],
-    zoom: DEFAULT.z,
-    interactive: false,
-    dragPan: false,
-    dragRotate: false,
-    touchPitch: false,
-    scrollZoom: false,
-    doubleClickZoom: false,
-    attributionControl: false,
-    fadeDuration: 0,
-  });
+  let map;
+  try {
+    map = new maplibre.Map({
+      container,
+      style: mapStyleUrl(),
+      center: [DEFAULT.lng, DEFAULT.lat],
+      zoom: DEFAULT.z,
+      interactive: false,
+      dragPan: false,
+      dragRotate: false,
+      touchPitch: false,
+      scrollZoom: false,
+      doubleClickZoom: false,
+      attributionControl: false,
+      fadeDuration: 0,
+    });
+  } catch (error) {
+    showMapFallback(container, MAP_FALLBACK_COPY.cover, error);
+    return;
+  }
+  const failure = mapFailureHandler(map, container, MAP_FALLBACK_COPY.cover);
 
   const paint = async () => {
-    restyleBaseMap(map);
-    await addCables(map, { color: coverCableColor() });
-    map.resize();
-    positionCoverMap(map);
+    try {
+      restyleBaseMap(map);
+      await addCables(map, { color: coverCableColor() });
+      map.resize();
+      positionCoverMap(map);
+      failure.markReady();
+    } catch (error) {
+      failure.fail(error);
+    }
   };
 
   map.on('load', paint);
@@ -777,30 +875,41 @@ async function initNetworkStoryMap() {
   const scene = document.getElementById('landing');
   if (!container || !scene || container.querySelector('.maplibregl-canvas')) return;
 
+  const maplibre = prepareMap(container, MAP_FALLBACK_COPY.network);
+  if (!maplibre) return;
+
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const map = new maplibregl.Map({
-    container,
-    style: mapStyleUrl(),
-    center: [121.05, 23.72],
-    zoom: 7,
-    interactive: false,
-    dragPan: false,
-    dragRotate: false,
-    touchPitch: false,
-    scrollZoom: false,
-    boxZoom: false,
-    doubleClickZoom: false,
-    attributionControl: false,
-    fadeDuration: 0,
-  });
+  let map;
+  try {
+    map = new maplibre.Map({
+      container,
+      style: mapStyleUrl(),
+      center: [121.05, 23.72],
+      zoom: 7,
+      interactive: false,
+      dragPan: false,
+      dragRotate: false,
+      touchPitch: false,
+      scrollZoom: false,
+      boxZoom: false,
+      doubleClickZoom: false,
+      attributionControl: false,
+      fadeDuration: 0,
+    });
+  } catch (error) {
+    showMapFallback(container, MAP_FALLBACK_COPY.network, error);
+    return;
+  }
+  const failure = mapFailureHandler(map, container, MAP_FALLBACK_COPY.network);
 
   map.on('load', async () => {
-    restyleBaseMap(map, { useSitePalette: true });
-    const [landings, destinations, cableData] = await Promise.all([
-      loadLandings(),
-      loadDestinations(),
-      loadCablesData(),
-    ]);
+    try {
+      restyleBaseMap(map, { useSitePalette: true });
+      const [landings, destinations, cableData] = await Promise.all([
+        loadLandings(),
+        loadDestinations(),
+        loadCablesData(),
+      ]);
     addLandingPins(map, landings, 'land-pin network-landing-pin');
     const landingRoutes = addLandingRoutes(map, landings);
     addDestinationPins(map, destinations, { wrapCenter: NETWORK_WRAP_CENTER });
@@ -920,12 +1029,23 @@ async function initNetworkStoryMap() {
       }, { threshold: 0.02 });
       observer.observe(scene);
     }
+      failure.markReady();
+    } catch (error) {
+      failure.fail(error);
+    }
   });
 }
 
 function initMaps() {
-  initCoverMap();
-  if (!new URLSearchParams(location.search).has('cover-preview')) initNetworkStoryMap();
+  const initializers = [initCoverMap];
+  if (!new URLSearchParams(location.search).has('cover-preview')) initializers.push(initNetworkStoryMap);
+  initializers.forEach((initialize) => {
+    try {
+      Promise.resolve(initialize()).catch((error) => console.error('[map init]', error));
+    } catch (error) {
+      console.error('[map init]', error);
+    }
+  });
 }
 
 if (document.readyState === 'loading') {

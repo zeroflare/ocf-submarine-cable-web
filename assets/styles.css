@@ -279,6 +279,58 @@ button {
   height: 100%;
 }
 
+.map-fallback-active > .maplibregl-map {
+  display: none;
+}
+
+.map-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  padding: 32px;
+  color: var(--text-mid);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(45, 147, 181, 0.2), transparent 38%),
+    var(--bg-cover);
+}
+
+.map-fallback-graphic {
+  width: min(360px, 74vw);
+  color: var(--cyan);
+}
+
+.map-fallback-routes path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.44;
+}
+
+.map-fallback-taiwan {
+  fill: var(--illus-sea-1);
+  stroke: var(--navy);
+  stroke-width: 2;
+}
+
+.map-fallback-node {
+  fill: var(--warning);
+  stroke: var(--bg-cover);
+  stroke-width: 3;
+}
+
+.map-fallback p {
+  max-width: 32em;
+  color: var(--text-mid);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
 .cover-map-readout {
   margin: 0;
   padding: 6px 10px;
